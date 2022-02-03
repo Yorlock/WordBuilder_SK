@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QTcpSocket>
 #include <QTimer>
+#include <iostream>
+#include <QMessageBox>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -33,8 +35,12 @@ private:
     void tryConnectToServer(QString nick);
 
     void loginInfo(QString message);
-    void waintingRoomInfo();
-    void gameWindowInfo();
+    void nickInfo(QString message);
+    void roundInfo(QString round);
+    void timeInfo(QString time);
+    void gameWindowInfo(QString message);
+    void sendRoundNumber(int roundNumber);
+    void sendRoundTime(int roundTime);
 
 };
 #endif // MAINWINDOW_H

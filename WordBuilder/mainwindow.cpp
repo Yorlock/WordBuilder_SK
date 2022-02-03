@@ -1,10 +1,5 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "login.h"
-
-#include <QTcpSocket>
-#include <iostream>
-#include <QMessageBox>
 
 using namespace std;
 
@@ -16,6 +11,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     setUpGUI();
     QObject::connect(ui->loginWidget, &login::connectToServer, this, &MainWindow::tryConnectToServer);
+    QObject::connect(ui->waitingroomWidget, &waitingroom::roundNumberChanged, this, &MainWindow::sendRoundNumber);
+    QObject::connect(ui->waitingroomWidget, &waitingroom::roundTimeChanged, this, &MainWindow::sendRoundTime);
 }
 
 MainWindow::~MainWindow()
@@ -34,7 +31,6 @@ void MainWindow::socketConnected()
     connTimeoutTimer->stop();
     connTimeoutTimer->deleteLater();
     connTimeoutTimer=nullptr;
-    std::cout << "Send nick: " << playerNick.toStdString()<<"\n";
     socket->write(playerNick.toStdString().c_str());
 }
 
@@ -57,46 +53,53 @@ void MainWindow::socketReadable()
 {
     QByteArray wholeMessage;
     wholeMessage = socket->readAll();
-    buffor.append(wholeMessage);
-    cout << "Whole message: " << wholeMessage.toStdString() << "\n";
+    QString helper = QString::fromStdString(wholeMessage.toStdString());
+    buffor = buffor + helper;
+
     QStringList list;
-    list = buffor.split('\n');
+    list = buffor.split('@');
     buffor = list.last();
-    std::cout <<"buffor: " << buffor.toStdString() <<"\n";
-    for(int i=0; i<list.size()-2; i++)
+
+    for(int i=0; i<list.size()-1; i++)
     {
         QString s = list[i];
-        if(s[0] == "l")
+        int j = 0;
+        while(s[j] == NULL && j < s.size()) j++;
+        if(s[j] == "l")
         {
-            loginInfo(s.mid(1));
+            loginInfo(s.mid(j+1));
         }
-        else if(s[0] == "n")
+        else if(s[j] == "n")
         {
-            waintingRoomInfo();
+            nickInfo(s.mid(j+1));
         }
-        else if(s[0] == "g")
+        else if(s[j] == "r")
         {
-            gameWindowInfo();
+            roundInfo(s.mid(j+1));
+        }
+        else if(s[j] == "t")
+        {
+            timeInfo(s.mid(j+1));
+        }
+        else if(s[j] == "g")
+        {
+            gameWindowInfo(s.mid(j+1));
         }
     }
 }
 
-void MainWindow::splitMessage()
-{
-
-}
-
 void MainWindow::loginInfo(QString message)
 {
-    std::cout << "Message: " << message.toStdString() <<"\n";
+    std::cout << "Login info: " << message.toStdString() <<"\n";
     if(message == "1")
     {
-        ui->waitingroomWidget->isGameMaster = true;
+        ui->waitingroomWidget->waitingroom::setUpGameMaster(true);
         ui->loginWidget->setVisible(false);
         ui->waitingroomWidget->setVisible(true);
     }
     else if(message == "2")
     {
+        ui->waitingroomWidget->waitingroom::setUpGameMaster(false);
         ui->loginWidget->setVisible(false);
         ui->waitingroomWidget->setVisible(true);
     }
@@ -111,18 +114,27 @@ void MainWindow::loginInfo(QString message)
     }
 }
 
-void MainWindow::waintingRoomInfo()
+void MainWindow::nickInfo(QString message)
 {
-    QByteArray message;
-    message = socket->read(29);
     std::cout << "Nick: " << message.toStdString() <<"\n";
-
+    ui->waitingroomWidget->addPlayerToList(message);
 }
 
-void MainWindow::gameWindowInfo()
+void MainWindow::roundInfo(QString message)
 {
-    QByteArray message;
-    message = socket->read(1);
+    std::cout << "Round: " << message.toStdString() <<"\n";
+    //ui->waitingroomWidget->addPlayerToList(message);
+}
+
+void MainWindow::timeInfo(QString message)
+{
+    std::cout << "Time: " << message.toStdString() <<"\n";
+    //ui->waitingroomWidget->addPlayerToList(message);
+}
+
+void MainWindow::gameWindowInfo(QString message)
+{
+
 }
 
 void MainWindow::tryConnectToServer(QString nick)
@@ -149,4 +161,18 @@ void MainWindow::tryConnectToServer(QString nick)
     connect(socket, &QTcpSocket::readyRead, this, &MainWindow::socketReadable);
     socket->connectToHost("127.0.0.1", 1112);
 
+}
+
+void MainWindow::sendRoundNumber(int roundNumber)
+{
+    char message[4] = "r";
+    strcat_s(message, to_string(roundNumber).c_str());
+    socket->write(message);
+}
+
+void MainWindow::sendRoundTime(int roundTime)
+{
+    char message[5] = "t";
+    strcat_s(message, to_string(roundTime).c_str());
+    socket->write(message);
 }

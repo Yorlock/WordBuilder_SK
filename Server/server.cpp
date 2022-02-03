@@ -27,8 +27,10 @@ struct client_struct
 
 
 std::vector<client_struct> allClients;
-int socketServer;
 client_struct gameMaster;
+int socketServer;
+int roundTime = 0;
+int roundNumber = 0;
 bool isGameStarted = false;
 
 void sendToAllClients(char* message)
@@ -36,10 +38,21 @@ void sendToAllClients(char* message)
     for(auto client : allClients)
     {
         write(client.desc, message, strlen(message));
-        cout<< "All: " << client.desc <<" msg: " << message << endl;
+        cout<< "(All) Fd: " << client.desc <<" msg: " << message << endl;
     }
 }
 
+void sendToAllClientsWithoutGameMaster(char* message)
+{
+    for(auto client : allClients)
+    {
+        if(client.desc != gameMaster.desc) 
+        {
+            write(client.desc, message, strlen(message));
+            cout<< "(All) Fd: " << client.desc <<" msg: " << message << endl;
+        }
+    }
+}
 
 
 void sendNewNickToPlayersInLobby()
@@ -49,13 +62,13 @@ void sendNewNickToPlayersInLobby()
     {
         char message [32] = "n";
         strcat(message, allClients[i].nick);
-        strcat(message, "\n");
+        strcat(message, "@");
         write(lastClient.desc, message, sizeof(message));
-        cout << "last joined: "<< lastClient.desc << " msg: " << message << endl;
+        cout << "(last joined) Fd: "<< lastClient.desc << " msg: " << message << endl;
     }
     char message [32] = "n";
     strcat(message, lastClient.nick);
-    strcat(message, "\n");
+    strcat(message, "@");
     sendToAllClients(message);
 }
 
@@ -105,23 +118,23 @@ void *acceptingClients(void *)
             //1 - klient może dołączyć do gry i gra nie jest rozpoczeta i jest gamemasterem
             if(!isGameStarted && allClients.size() == 1)
             {
-                write(client.desc, "l1\n", 3);
+                write(client.desc, "l1@", 3);
                 sendNewNickToPlayersInLobby();
             }
             //2 - klient może dołączyć do gry i gra nie jest rozpoczeta
             else if(!isGameStarted)
             {
-                write(client.desc, "l2\n", 3);
+                write(client.desc, "l2@", 3);
                 sendNewNickToPlayersInLobby();
             }
             //3 - klient może dołączyć do gry i gra jest rozpoczeta
-            else write(client.desc, "l3\n", 3);
+            else write(client.desc, "l3@", 3);
         }
         else
         {
             printf("Nick: %s jest juz zajety\n", client.nick);
             //4 - klient nie moze dolaczyc do rozrywki
-            write(client.desc, "l4\n", 3);
+            write(client.desc, "l4@", 3);
             close(client.desc);
         }
     }
@@ -158,9 +171,32 @@ int main(int argc, char ** argv)
     {
         if(gameMaster.desc)
         {
-            char buffer[255];
-            int count = read(gameMaster.desc, buffer, 255);
+            char message[5];
+            memset(message, 0, 5);
+            int count = read(gameMaster.desc, message, 5);
+            //cout << count << "\n";  //if 0 gamemaster sie zapewne rozlaczyl :)
             if(count == -1) error(1, errno, "Blad read'a");
+            
+            if(count > 0) //do wyjebania jak ogarniemy* discconecta gamemastera     *jeśli
+            {
+                if(message[0] == 'r') 
+                {
+                    char round[3];
+                    strcpy(round, message + 1);
+                    roundNumber = atoi(round);
+                }
+                else if(message[0] == 't') 
+                {
+                    char round[4];
+                    strcpy(round, message + 1);
+                    roundTime = atoi(round);
+                }
+
+                strcat(message, "@");
+                sendToAllClientsWithoutGameMaster(message);
+            }
+
+
         }
     }
 }
