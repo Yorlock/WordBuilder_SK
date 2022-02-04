@@ -6,6 +6,7 @@ waitingroom::waitingroom(QWidget *parent) :
     ui(new Ui::waitingroom)
 {
     ui->setupUi(this);
+    setUpGUI();
 }
 
 waitingroom::~waitingroom()
@@ -55,7 +56,6 @@ void waitingroom::changeRoundNumber(QString roundNumber)
 void waitingroom::changeRoundTime(QString roundTime)
 {
     ui->czasRundyspinBox->setValue(roundTime.toInt());
-    ui->czasRundyspinBox->show();
 }
 
 void waitingroom::on_liczbaRundspinBox_valueChanged(int roundNumber)

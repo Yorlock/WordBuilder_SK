@@ -123,13 +123,13 @@ void MainWindow::nickInfo(QString message)
 void MainWindow::roundInfo(QString message)
 {
     std::cout << "Round: " << message.toStdString() <<"\n";
-    //ui->waitingroomWidget->addPlayerToList(message);
+    ui->waitingroomWidget->changeRoundNumber(message);
 }
 
 void MainWindow::timeInfo(QString message)
 {
     std::cout << "Time: " << message.toStdString() <<"\n";
-    //ui->waitingroomWidget->addPlayerToList(message);
+    ui->waitingroomWidget->changeRoundTime(message);
 }
 
 void MainWindow::gameWindowInfo(QString message)

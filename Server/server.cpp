@@ -13,6 +13,7 @@
 #include <signal.h>
 #include <string.h>
 #include <iostream>
+#include <utility>
 
 using namespace std;
 
@@ -25,13 +26,206 @@ struct client_struct
     int score = 0;
 };
 
+struct word_struct
+{
+    string letters;
+    vector<pair<string, bool>> correctWords;
+};
 
-std::vector<client_struct> allClients;
+vector<client_struct> allClients;
+vector<word_struct> allSets;
 client_struct gameMaster;
+int currentSet = 0;
 int socketServer;
 int roundTime = 0;
 int roundNumber = 0;
 bool isGameStarted = false;
+
+void insertAllSets()
+{
+    word_struct word[19];
+
+    word[0].letters = "UMR";
+    word[0].correctWords.push_back(make_pair("RUM", false));
+    word[0].correctWords.push_back(make_pair("MUR", false));
+
+    word[1].letters = "ETN";
+    word[1].correctWords.push_back(make_pair("NET", false));
+    word[1].correctWords.push_back(make_pair("TEN", false));
+
+    word[2].letters = "OFSA";
+    word[2].correctWords.push_back(make_pair("SOFA", false));
+    word[2].correctWords.push_back(make_pair("FOSA", false));
+    word[2].correctWords.push_back(make_pair("OSA", false));
+
+    word[3].letters = "TOŁM";
+    word[3].correctWords.push_back(make_pair("MŁOT", false));
+    word[3].correctWords.push_back(make_pair("ŁOM", false));
+    word[3].correctWords.push_back(make_pair("TŁO", false));
+    word[3].correctWords.push_back(make_pair("TOM", false));
+
+    word[4].letters = "LABO";
+    word[4].correctWords.push_back(make_pair("ALBO", false));
+    word[4].correctWords.push_back(make_pair("BOA", false));
+    word[4].correctWords.push_back(make_pair("BAL", false));
+
+    word[5].letters = "KOZPA";
+    word[5].correctWords.push_back(make_pair("OKAZ", false));
+    word[5].correctWords.push_back(make_pair("POKA", false));
+    word[5].correctWords.push_back(make_pair("OKAP", false));
+    word[5].correctWords.push_back(make_pair("KOZA", false));
+    word[5].correctWords.push_back(make_pair("OPAK", false));
+
+    word[6].letters = "DOWWA";
+    word[6].correctWords.push_back(make_pair("WDOWA", false));
+    word[6].correctWords.push_back(make_pair("OWAD", false));
+    word[6].correctWords.push_back(make_pair("WODA", false));
+    word[6].correctWords.push_back(make_pair("DWA", false));
+    word[6].correctWords.push_back(make_pair("ODA", false));
+
+    word[7].letters = "OSATT";
+    word[7].correctWords.push_back(make_pair("TOAST", false));
+    word[7].correctWords.push_back(make_pair("TATO", false));
+    word[7].correctWords.push_back(make_pair("TOST", false));
+    word[7].correctWords.push_back(make_pair("OSA", false));
+    word[7].correctWords.push_back(make_pair("STO", false));
+
+    word[8].letters = "RUZAP";
+    word[8].correctWords.push_back(make_pair("PAZUR", false));
+    word[8].correctWords.push_back(make_pair("URAZ", false));
+    word[8].correctWords.push_back(make_pair("ZUPA", false));
+    word[8].correctWords.push_back(make_pair("RAZ", false));
+    word[8].correctWords.push_back(make_pair("RAP", false));
+
+    word[9].letters = "UMGKA";
+    word[9].correctWords.push_back(make_pair("GUMKA", false));
+    word[9].correctWords.push_back(make_pair("GUMA", false));
+    word[9].correctWords.push_back(make_pair("KUMA", false));
+    word[9].correctWords.push_back(make_pair("MAK", false));
+    word[9].correctWords.push_back(make_pair("MAG", false));
+
+    word[10].letters = "AAMDL";
+    word[10].correctWords.push_back(make_pair("DAMA", false));
+    word[10].correctWords.push_back(make_pair("LADA", false));
+    word[10].correctWords.push_back(make_pair("LAMA", false));
+    word[10].correctWords.push_back(make_pair("DAL", false));
+    word[10].correctWords.push_back(make_pair("DLA", false));
+
+    word[11].letters = "AĆAWD";
+    word[11].correctWords.push_back(make_pair("DAWAĆ", false));
+    word[11].correctWords.push_back(make_pair("WADA", false));
+    word[11].correctWords.push_back(make_pair("WDAĆ", false));
+    word[11].correctWords.push_back(make_pair("DWA", false));
+    word[11].correctWords.push_back(make_pair("DAĆ", false));
+
+    word[12].letters = "SMATA";
+    word[12].correctWords.push_back(make_pair("ASTMA", false));
+    word[12].correctWords.push_back(make_pair("MASA", false));
+    word[12].correctWords.push_back(make_pair("MATA", false));
+    word[12].correctWords.push_back(make_pair("TAMA", false));
+    word[12].correctWords.push_back(make_pair("SAM", false));
+    word[12].correctWords.push_back(make_pair("TAM", false));
+    word[12].correctWords.push_back(make_pair("MAT", false));
+
+    word[13].letters = "ĆSPAR";
+    word[13].correctWords.push_back(make_pair("SPRAĆ", false));
+    word[13].correctWords.push_back(make_pair("SRAĆ", false));
+    word[13].correctWords.push_back(make_pair("PRAĆ", false));
+    word[13].correctWords.push_back(make_pair("SPAĆ", false));
+    word[13].correctWords.push_back(make_pair("RAP", false));
+    word[13].correctWords.push_back(make_pair("PAS", false));
+
+    word[14].letters = "ZSŁOK";
+    word[14].correctWords.push_back(make_pair("SZKŁO", false));
+    word[14].correctWords.push_back(make_pair("KŁOS", false));
+    word[14].correctWords.push_back(make_pair("KOSZ", false));
+    word[14].correctWords.push_back(make_pair("SZOK", false));
+    word[14].correctWords.push_back(make_pair("ZŁO", false));
+    word[14].correctWords.push_back(make_pair("KOS", false));
+    word[14].correctWords.push_back(make_pair("SOK", false));
+
+    word[15].letters = "AAWZŁ";
+    word[15].correctWords.push_back(make_pair("ZAWAŁ", false));
+    word[15].correctWords.push_back(make_pair("ŁAWA", false));
+    word[15].correctWords.push_back(make_pair("WAZA", false));
+    word[15].correctWords.push_back(make_pair("WŁAZ", false));
+    word[15].correctWords.push_back(make_pair("ZWAŁ", false));
+    word[15].correctWords.push_back(make_pair("WAŁ", false));
+
+    word[16].letters = "SAAKM";
+    word[16].correctWords.push_back(make_pair("MASKA", false));
+    word[16].correctWords.push_back(make_pair("KASA", false));
+    word[16].correctWords.push_back(make_pair("MAKS", false));
+    word[16].correctWords.push_back(make_pair("MASA", false));
+    word[16].correctWords.push_back(make_pair("SMAK", false));
+    word[16].correctWords.push_back(make_pair("SAM", false));
+    word[16].correctWords.push_back(make_pair("MAK", false));
+
+    word[17].letters = "ORZZA";
+    word[17].correctWords.push_back(make_pair("ZORZA", false));
+    word[17].correctWords.push_back(make_pair("ORAZ", false));
+    word[17].correctWords.push_back(make_pair("ZRAZ", false));
+    word[17].correctWords.push_back(make_pair("ZZA", false));
+    word[17].correctWords.push_back(make_pair("RAZ", false));
+
+    word[18].letters = "SZOKP";
+    word[18].correctWords.push_back(make_pair("SZKOP", false));
+    word[18].correctWords.push_back(make_pair("KOSZ", false));
+    word[18].correctWords.push_back(make_pair("SZOK", false));
+    word[18].correctWords.push_back(make_pair("SZOP", false));
+    word[18].correctWords.push_back(make_pair("SOK", false));
+    word[18].correctWords.push_back(make_pair("KOS", false));
+    word[18].correctWords.push_back(make_pair("OK", false));
+    
+    for(word_struct w : word)
+    {
+        /*
+        cout << "letters: " << w.letters <<"\n";
+        for(string s : w.correctWords)
+        {
+            cout << "word: " << s <<"\n";
+        }
+        */
+        allSets.push_back(w);
+    }
+}
+
+void checkCorrectnessOfWord(client_struct client, string word)
+{
+    for(pair w : allSets.at(currentSet).correctWords)
+    {
+        if(word == w.first) // takie slowo istnieje
+        {
+            if(!w.second) //nie zgadniety jeszcze - gracz dostaje punkt
+            {
+                return;
+            }
+            //slowo zostalo zgadniete - bez zmian pkt
+            return;
+        }
+    }
+    // gracz traci punkt
+}
+
+void sendRoundTimeToClient(client_struct client)
+{
+    char message[5];
+    memset(message, 0, 5);
+    strcat(message, "t");
+    strcat(message, std::to_string(roundTime).c_str());
+    strcat(message, "@");
+    write(client.desc, message, sizeof(message));
+}
+
+void sendRoundNumberToClient(client_struct client)
+{
+    char message[5];
+    memset(message, 0, 5);
+    strcat(message, "r");
+    strcat(message, std::to_string(roundNumber).c_str());
+    strcat(message, "@");
+    write(client.desc, message, sizeof(message));
+}
 
 void sendToAllClients(char* message)
 {
@@ -66,6 +260,9 @@ void sendNewNickToPlayersInLobby()
         write(lastClient.desc, message, sizeof(message));
         cout << "(last joined) Fd: "<< lastClient.desc << " msg: " << message << endl;
     }
+    sendRoundTimeToClient(lastClient);
+    sendRoundNumberToClient(lastClient);
+
     char message [32] = "n";
     strcat(message, lastClient.nick);
     strcat(message, "@");
@@ -163,6 +360,8 @@ int main(int argc, char ** argv)
     serverBind = listen(socketServer, 4);
     if(serverBind) error(1, errno, "Blad listen");
 
+    insertAllSets();
+
     pthread_t accepting;
     int threadAccepting = pthread_create(&accepting, NULL, acceptingClients, NULL);
     if(threadAccepting) error(1, errno, "Blad watku");
@@ -179,7 +378,7 @@ int main(int argc, char ** argv)
             
             if(count > 0) //do wyjebania jak ogarniemy* discconecta gamemastera     *jeśli
             {
-                if(message[0] == 'r') 
+                if(message[0] == 'r')
                 {
                     char round[3];
                     strcpy(round, message + 1);
