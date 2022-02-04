@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent)
     QObject::connect(ui->waitingroomWidget, &waitingroom::roundNumberChanged, this, &MainWindow::sendRoundNumber);
     QObject::connect(ui->waitingroomWidget, &waitingroom::roundTimeChanged, this, &MainWindow::sendRoundTime);
     QObject::connect(ui->waitingroomWidget, &waitingroom::gameStarted, this, &MainWindow::sendGameStarted);
+    QObject::connect(ui->gamewindowWidget, &gamewindow::sendWordToMainWindow, this, &MainWindow::sendWordToServer);
 }
 
 MainWindow::~MainWindow()
@@ -84,7 +85,35 @@ void MainWindow::socketReadable()
         }
         else if(s[j] == "g")
         {
-            startGameWindowInfo(s.mid(j+1));
+            startGameWindowInfo();
+        }
+        else if(s[j] == "z")
+        {
+            currentRoundInGame(s.mid(j+1));
+        }
+        else if(s[j] == "x")
+        {
+            currentTimeInGame(s.mid(j+1));
+        }
+        else if(s[j] == "q")
+        {
+            currentSetOfLetters(s.mid(j+1));
+        }
+        else if(s[j] == "c")
+        {
+            addPlayerToRanking(s.mid(j+1));
+        }
+        else if(s[j] == "p")
+        {
+            wordsFromPreviousRound(s.mid(j+1));
+        }
+        else if(s[j] == "e")
+        {
+            endOfRound();
+        }
+        else if(s[j] == "o")
+        {
+            guessedWord(s.mid(j+1));
         }
     }
 }
@@ -133,12 +162,50 @@ void MainWindow::timeInfo(QString message)
     ui->waitingroomWidget->changeRoundTime(message);
 }
 
-void MainWindow::startGameWindowInfo(QString message)
+void MainWindow::startGameWindowInfo()
 {
-    cout << "first letters: " << message.toStdString() << "\n";
     ui->waitingroomWidget->setVisible(false);
     ui->gamewindowWidget->setVisible(true);
+}
+
+void MainWindow::currentRoundInGame(QString message)
+{
+    ui->gamewindowWidget->changeRound(message);
+}
+
+void MainWindow::currentTimeInGame(QString message)
+{
+    ui->gamewindowWidget->changeRoundTime(message);
+}
+
+void MainWindow::currentSetOfLetters(QString message)
+{
+    ui->gamewindowWidget->removeFromLettersToUseLayout();
     ui->gamewindowWidget->addLettersToUse(message.toStdString());
+}
+
+void MainWindow::addPlayerToRanking(QString message)
+{
+    ui->gamewindowWidget->addPlayerToRanking(message);
+}
+
+void MainWindow::wordsFromPreviousRound(QString message)
+{
+    ui->gamewindowWidget->addWordToPreviousRound(message);
+}
+
+void MainWindow::endOfRound()
+{
+    //
+    ui->gamewindowWidget->removeFromBuildedWordsLayout();
+    ui->gamewindowWidget->removeFromLettersToUseLayout();
+    ui->gamewindowWidget->removeFromRankingVerticalLayout();
+    ui->gamewindowWidget->removeFromSolvedVerticalLayout();
+}
+
+void MainWindow::guessedWord(QString message)
+{
+    ui->gamewindowWidget->addGuessedWord(message);
 }
 
 void MainWindow::tryConnectToServer(QString nick)
@@ -184,5 +251,12 @@ void MainWindow::sendRoundTime(int roundTime)
 void MainWindow::sendGameStarted()
 {
     char message[2] = "g";
+    socket->write(message);
+}
+
+void MainWindow::sendWordToServer(QString word)
+{
+    char message[31] = "o";
+    strcat_s(message, word.toStdString().c_str());
     socket->write(message);
 }

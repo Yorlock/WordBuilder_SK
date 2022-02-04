@@ -18,7 +18,7 @@
 using namespace std;
 
 #define SERVER_PORT 1112
-#define NUMBER_OF_SETS 19
+#define NUMBER_OF_SETS 15
 struct client_struct
 {
     int desc = 0;
@@ -31,12 +31,15 @@ struct word_struct
     string letters;
     vector<pair<string, bool>> correctWords;
     bool played = false;
+    int alreadyGuessed = 0;
 };
 
 vector<client_struct> allClients;
 vector<word_struct> allSets;
 client_struct gameMaster;
 int currentSet = 0;
+int currentRound = 1;
+int currentTime = 0;
 int socketServer;
 int roundTime = 0;
 int roundNumber = 0;
@@ -59,11 +62,14 @@ void insertAllSets()
     word[2].correctWords.push_back(make_pair("FOSA", false));
     word[2].correctWords.push_back(make_pair("OSA", false));
 
-    word[3].letters = "TOŁM";
-    word[3].correctWords.push_back(make_pair("MŁOT", false));
-    word[3].correctWords.push_back(make_pair("ŁOM", false));
-    word[3].correctWords.push_back(make_pair("TŁO", false));
-    word[3].correctWords.push_back(make_pair("TOM", false));
+    word[3].letters = "SZOKP";
+    word[3].correctWords.push_back(make_pair("SZKOP", false));
+    word[3].correctWords.push_back(make_pair("KOSZ", false));
+    word[3].correctWords.push_back(make_pair("SZOK", false));
+    word[3].correctWords.push_back(make_pair("SZOP", false));
+    word[3].correctWords.push_back(make_pair("SOK", false));
+    word[3].correctWords.push_back(make_pair("KOS", false));
+    word[3].correctWords.push_back(make_pair("OK", false));
 
     word[4].letters = "LABO";
     word[4].correctWords.push_back(make_pair("ALBO", false));
@@ -112,12 +118,12 @@ void insertAllSets()
     word[10].correctWords.push_back(make_pair("DAL", false));
     word[10].correctWords.push_back(make_pair("DLA", false));
 
-    word[11].letters = "AĆAWD";
-    word[11].correctWords.push_back(make_pair("DAWAĆ", false));
-    word[11].correctWords.push_back(make_pair("WADA", false));
-    word[11].correctWords.push_back(make_pair("WDAĆ", false));
-    word[11].correctWords.push_back(make_pair("DWA", false));
-    word[11].correctWords.push_back(make_pair("DAĆ", false));
+    word[11].letters = "ORZZA";
+    word[11].correctWords.push_back(make_pair("ZORZA", false));
+    word[11].correctWords.push_back(make_pair("ORAZ", false));
+    word[11].correctWords.push_back(make_pair("ZRAZ", false));
+    word[11].correctWords.push_back(make_pair("ZZA", false));
+    word[11].correctWords.push_back(make_pair("RAZ", false));
 
     word[12].letters = "SMATA";
     word[12].correctWords.push_back(make_pair("ASTMA", false));
@@ -128,55 +134,21 @@ void insertAllSets()
     word[12].correctWords.push_back(make_pair("TAM", false));
     word[12].correctWords.push_back(make_pair("MAT", false));
 
-    word[13].letters = "ĆSPAR";
-    word[13].correctWords.push_back(make_pair("SPRAĆ", false));
-    word[13].correctWords.push_back(make_pair("SRAĆ", false));
-    word[13].correctWords.push_back(make_pair("PRAĆ", false));
-    word[13].correctWords.push_back(make_pair("SPAĆ", false));
-    word[13].correctWords.push_back(make_pair("RAP", false));
-    word[13].correctWords.push_back(make_pair("PAS", false));
+    word[13].letters = "SAAKM";
+    word[13].correctWords.push_back(make_pair("MASKA", false));
+    word[13].correctWords.push_back(make_pair("KASA", false));
+    word[13].correctWords.push_back(make_pair("MAKS", false));
+    word[13].correctWords.push_back(make_pair("MASA", false));
+    word[13].correctWords.push_back(make_pair("SMAK", false));
+    word[13].correctWords.push_back(make_pair("SAM", false));
+    word[13].correctWords.push_back(make_pair("MAK", false));
 
-    word[14].letters = "ZSŁOK";
-    word[14].correctWords.push_back(make_pair("SZKŁO", false));
-    word[14].correctWords.push_back(make_pair("KŁOS", false));
-    word[14].correctWords.push_back(make_pair("KOSZ", false));
-    word[14].correctWords.push_back(make_pair("SZOK", false));
-    word[14].correctWords.push_back(make_pair("ZŁO", false));
-    word[14].correctWords.push_back(make_pair("KOS", false));
-    word[14].correctWords.push_back(make_pair("SOK", false));
-
-    word[15].letters = "AAWZŁ";
-    word[15].correctWords.push_back(make_pair("ZAWAŁ", false));
-    word[15].correctWords.push_back(make_pair("ŁAWA", false));
-    word[15].correctWords.push_back(make_pair("WAZA", false));
-    word[15].correctWords.push_back(make_pair("WŁAZ", false));
-    word[15].correctWords.push_back(make_pair("ZWAŁ", false));
-    word[15].correctWords.push_back(make_pair("WAŁ", false));
-
-    word[16].letters = "SAAKM";
-    word[16].correctWords.push_back(make_pair("MASKA", false));
-    word[16].correctWords.push_back(make_pair("KASA", false));
-    word[16].correctWords.push_back(make_pair("MAKS", false));
-    word[16].correctWords.push_back(make_pair("MASA", false));
-    word[16].correctWords.push_back(make_pair("SMAK", false));
-    word[16].correctWords.push_back(make_pair("SAM", false));
-    word[16].correctWords.push_back(make_pair("MAK", false));
-
-    word[17].letters = "ORZZA";
-    word[17].correctWords.push_back(make_pair("ZORZA", false));
-    word[17].correctWords.push_back(make_pair("ORAZ", false));
-    word[17].correctWords.push_back(make_pair("ZRAZ", false));
-    word[17].correctWords.push_back(make_pair("ZZA", false));
-    word[17].correctWords.push_back(make_pair("RAZ", false));
-
-    word[18].letters = "SZOKP";
-    word[18].correctWords.push_back(make_pair("SZKOP", false));
-    word[18].correctWords.push_back(make_pair("KOSZ", false));
-    word[18].correctWords.push_back(make_pair("SZOK", false));
-    word[18].correctWords.push_back(make_pair("SZOP", false));
-    word[18].correctWords.push_back(make_pair("SOK", false));
-    word[18].correctWords.push_back(make_pair("KOS", false));
-    word[18].correctWords.push_back(make_pair("OK", false));
+    word[14].letters = "ORZZA";
+    word[14].correctWords.push_back(make_pair("ZORZA", false));
+    word[14].correctWords.push_back(make_pair("ORAZ", false));
+    word[14].correctWords.push_back(make_pair("ZRAZ", false));
+    word[14].correctWords.push_back(make_pair("ZZA", false));
+    word[14].correctWords.push_back(make_pair("RAZ", false));
     
     for(word_struct w : word)
     {
@@ -191,7 +163,7 @@ void insertAllSets()
     }
 }
 
-void checkCorrectnessOfWord(client_struct client, string word)
+int checkCorrectnessOfWord(client_struct client, string word)
 {
     for(pair w : allSets.at(currentSet).correctWords)
     {
@@ -199,31 +171,35 @@ void checkCorrectnessOfWord(client_struct client, string word)
         {
             if(!w.second) //nie zgadniety jeszcze - gracz dostaje punkt
             {
-                return;
+                allSets.at(currentSet).alreadyGuessed++;
+                return 1;
             }
             //slowo zostalo zgadniete - bez zmian pkt
-            return;
+            return 0;
         }
     }
+    return -1;
     // gracz traci punkt
 }
 
-void sendRoundTimeToClient(client_struct client)
+void sendRoundTimeToClient(client_struct client, string typeOfMessage)
 {
     char message[5];
     memset(message, 0, 5);
-    strcat(message, "t");
-    strcat(message, std::to_string(roundTime).c_str());
+    strcat(message, typeOfMessage.c_str());
+    if(isGameStarted) strcat(message, std::to_string(currentTime).c_str());
+    else strcat(message, std::to_string(roundTime).c_str());
     strcat(message, "@");
     write(client.desc, message, sizeof(message));
 }
 
-void sendRoundNumberToClient(client_struct client)
+void sendRoundNumberToClient(client_struct client, string typeOfMessage)
 {
     char message[5];
     memset(message, 0, 5);
-    strcat(message, "r");
-    strcat(message, std::to_string(roundNumber).c_str());
+    strcat(message, typeOfMessage.c_str());
+    if(typeOfMessage == "z") strcat(message, std::to_string(currentRound).c_str());
+    else strcat(message, std::to_string(roundNumber).c_str());
     strcat(message, "@");
     write(client.desc, message, sizeof(message));
 }
@@ -261,13 +237,35 @@ void sendNewNickToPlayersInLobby()
         write(lastClient.desc, message, sizeof(message));
         cout << "(last joined) Fd: "<< lastClient.desc << " msg: " << message << endl;
     }
-    sendRoundTimeToClient(lastClient);
-    sendRoundNumberToClient(lastClient);
+    sendRoundTimeToClient(lastClient, "t");
+    sendRoundNumberToClient(lastClient, "r");
 
     char message [32] = "n";
     strcat(message, lastClient.nick);
     strcat(message, "@");
     sendToAllClients(message);
+}
+
+int generateRandomSet()
+{
+    while(1)
+    {
+        int set = rand()%NUMBER_OF_SETS;
+        if(!allSets.at(set).played)
+        {
+            allSets.at(set).played = true;
+            currentSet = set;
+            return set;
+        }
+    }
+}
+
+void sendRandomSet(int set)
+{
+    char buffor[10] = "";
+    strcat(buffor, "q");
+    strcat(buffor, allSets.at(set).letters.c_str());
+    sendToAllClients(strcat(buffor, "@"));
 }
 
 void setReuseAddr(int sock)
@@ -293,6 +291,27 @@ bool checkNick(char* nick)
         if(strcmp(client.nick, nick) == 0) return false;
     }
     return true;
+}
+
+void newRound()
+{
+    sendRandomSet(generateRandomSet());
+    // generateRanking(); //generowanie rankingu do zmiennej vector<string> ranking <-stworz ją!
+    for(client_struct client : allClients)
+    {
+        sendRoundTimeToClient(client, "x");
+        sendRoundNumberToClient(client, "z");
+        //funkcja do wysyłania wszystkich wartosci z zmiennej ranking do klienta <- stworz ją!
+
+    }
+
+    for(pair word : allSets.at(currentSet).correctWords)
+    {
+        // sendToAllClients(word.first) // wysłanie slowa do wszystkich klientow
+        word.second = false;
+    }
+    // previous round solutions
+
 }
 
 void *acceptingClients(void *)
@@ -329,8 +348,11 @@ void *acceptingClients(void *)
             else
             {
                 write(client.desc, "l3@", 3);
+                sendRandomSet(currentSet);
+                sendRoundTimeToClient(client, "x");
+                sendRoundNumberToClient(client, "z");
                 // wysłanie info o dolaczeniu gracza
-            } 
+            }
         }
         else
         {
@@ -398,15 +420,17 @@ int main(int argc, char ** argv)
                 }
                 else if(message[0] == 'g') // wysylamy 1 zestaw liter???
                 {
+                    char startGame[3] = "";
+                    strcat(startGame, "g");
+                    sendToAllClients(strcat(startGame, "@"));
+                    sendRandomSet(generateRandomSet());
+
+                    for(client_struct client : allClients)
+                    {
+                        sendRoundTimeToClient(client, "x");
+                        sendRoundNumberToClient(client, "z");
+                    }
                     isGameStarted = true;
-
-                    int firstSet = rand()%NUMBER_OF_SETS;
-                    allSets.at(firstSet).played = true;
-
-                    char firstRound[7] = "";
-                    strcat(firstRound, "g");
-                    strcat(firstRound, allSets.at(firstSet).letters.c_str());
-                    sendToAllClients(strcat(firstRound, "@"));
                     //zrobienie watków do wszystkich graczy
                     break; //wyjscie z petli
                 }

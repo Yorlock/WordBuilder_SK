@@ -62,6 +62,9 @@
    <property name="text">
     <string/>
    </property>
+   <property name="maxLength">
+    <number>29</number>
+   </property>
   </widget>
   <widget class="QLabel" name="rankingLabel">
    <property name="geometry">
@@ -160,7 +163,7 @@
     <set>Qt::AlignBottom|Qt::AlignHCenter</set>
    </property>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>210</x>
@@ -184,7 +187,7 @@
     </property>
    </layout>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>600</x>
@@ -195,7 +198,7 @@
    </property>
    <layout class="QVBoxLayout" name="rankingVerticalLayout"/>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -206,7 +209,7 @@
    </property>
    <layout class="QVBoxLayout" name="solvedVerticalLayout"/>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>210</x>
@@ -321,7 +324,7 @@
   <widget class="QLabel" name="roundLabelValue">
    <property name="geometry">
     <rect>
-     <x>80</x>
+     <x>60</x>
      <y>10</y>
      <width>71</width>
      <height>21</height>

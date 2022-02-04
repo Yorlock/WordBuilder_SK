@@ -35,13 +35,13 @@ void gamewindow::addLettersToUse(std::string letters)
     }
 }
 
-void gamewindow::removeFromLayout(QLayout *layout)
+void gamewindow::removeFromLettersToUseLayout()
 {
     QLayoutItem* child;
-    while ( layout->count() != 0 ) {
-        child = layout->takeAt ( 0 );
+    while ( ui->lettersToUseLayout->count() != 0 ) {
+        child = ui->lettersToUseLayout->takeAt ( 0 );
         if ( child->layout() != 0 ) {
-            layout->removeItem ( child->layout() );
+            ui->lettersToUseLayout->removeItem ( child->layout() );
         } else if ( child->widget() != 0 ) {
             delete child->widget();
         }
@@ -49,11 +49,99 @@ void gamewindow::removeFromLayout(QLayout *layout)
     }
 }
 
-void gamewindow::addBuildedWord(char word[])
+void gamewindow::removeFromBuildedWordsLayout()
+{
+    QLayoutItem* child;
+    while ( ui->buildedWordsLayout->count() != 0 ) {
+        child = ui->buildedWordsLayout->takeAt ( 0 );
+        if ( child->layout() != 0 ) {
+            ui->buildedWordsLayout->removeItem ( child->layout() );
+        } else if ( child->widget() != 0 ) {
+            delete child->widget();
+        }
+        delete child;
+    }
+}
+
+void gamewindow::removeFromSolvedVerticalLayout()
+{
+    QLayoutItem* child;
+    while ( ui->solvedVerticalLayout->count() != 0 ) {
+        child = ui->solvedVerticalLayout->takeAt ( 0 );
+        if ( child->layout() != 0 ) {
+            ui->solvedVerticalLayout->removeItem ( child->layout() );
+        } else if ( child->widget() != 0 ) {
+            delete child->widget();
+        }
+        delete child;
+    }
+}
+
+void gamewindow::removeFromRankingVerticalLayout()
+{
+    QLayoutItem* child;
+    while ( ui->rankingVerticalLayout->count() != 0 ) {
+        child = ui->rankingVerticalLayout->takeAt ( 0 );
+        if ( child->layout() != 0 ) {
+            ui->rankingVerticalLayout->removeItem ( child->layout() );
+        } else if ( child->widget() != 0 ) {
+            delete child->widget();
+        }
+        delete child;
+    }
+}
+
+void gamewindow::changeRound(QString round)
+{
+    ui->roundLabelValue->setText(round);
+}
+
+void gamewindow::changeRoundTime(QString time)
+{
+    ui->timeLabelValue->setText(time);
+}
+
+void gamewindow::addPlayerToRanking(QString word)
+{
+    QLabel *qlabel = new QLabel(word,
+                             this);
+    ui->rankingVerticalLayout->addWidget(qlabel);
+    ui->rankingVerticalLayout->setAlignment(qlabel, Qt::AlignHCenter | Qt::AlignTop);
+    qlabel->setFont(qfont);
+}
+
+void gamewindow::addWordToPreviousRound(QString word)
+{
+    QLabel *qlabel = new QLabel(word,
+                             this);
+    ui->solvedVerticalLayout->addWidget(qlabel);
+    ui->solvedVerticalLayout->setAlignment(qlabel, Qt::AlignHCenter | Qt::AlignTop);
+    qlabel->setFont(qfont);
+}
+
+void gamewindow::addGuessedWord(QString word)
 {
     QLabel *qlabel = new QLabel(word,
                              this);
     ui->buildedWordsLayout->addWidget(qlabel);
     ui->buildedWordsLayout->setAlignment(qlabel, Qt::AlignHCenter | Qt::AlignTop);
     qlabel->setFont(qfont);
+}
+
+void gamewindow::addBuildedWord(QString word)
+{
+    QLabel *qlabel = new QLabel(word,
+                             this);
+    ui->buildedWordsLayout->addWidget(qlabel);
+    ui->buildedWordsLayout->setAlignment(qlabel, Qt::AlignHCenter | Qt::AlignTop);
+    qlabel->setFont(qfont);
+}
+
+void gamewindow::on_guessPushButton_clicked()
+{
+    QString word = ui->inputLineEdit->text().trimmed();
+    if(word.compare("") == 1)
+    {
+        emit sendWordToMainWindow(word);
+    }
 }

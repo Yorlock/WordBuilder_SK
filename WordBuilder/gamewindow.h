@@ -16,8 +16,22 @@ public:
     explicit gamewindow(QWidget *parent = nullptr);
     ~gamewindow();
     void addLettersToUse(std::string letters);
-    void removeFromLayout(QLayout *layout);
-    void addBuildedWord(char word[]);
+    void removeFromLettersToUseLayout();
+    void removeFromBuildedWordsLayout();
+    void removeFromSolvedVerticalLayout();
+    void removeFromRankingVerticalLayout();
+    void addPlayerToRanking(QString word);
+    void addWordToPreviousRound(QString word);
+    void addGuessedWord(QString word);
+    void addBuildedWord(QString word);
+    void changeRound(QString round);
+    void changeRoundTime(QString time);
+
+signals:
+    void sendWordToMainWindow(QString word);
+
+private slots:
+    void on_guessPushButton_clicked();
 
 private:
     Ui::gamewindow *ui;

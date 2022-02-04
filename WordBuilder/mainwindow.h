@@ -36,12 +36,21 @@ private:
 
     void loginInfo(QString message);
     void nickInfo(QString message);
+    void currentRoundInGame(QString message);
+    void currentTimeInGame(QString message);
+    void currentSetOfLetters(QString message);
+    void addPlayerToRanking(QString message);
+    void wordsFromPreviousRound(QString message);
+    void endOfRound();
+    void guessedWord(QString message);
     void roundInfo(QString round);
     void timeInfo(QString time);
-    void startGameWindowInfo(QString message);
+
+    void startGameWindowInfo();
     void sendRoundNumber(int roundNumber);
     void sendRoundTime(int roundTime);
     void sendGameStarted();
+    void sendWordToServer(QString word);
 
 };
 #endif // MAINWINDOW_H
