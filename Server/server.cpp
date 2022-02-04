@@ -18,7 +18,7 @@
 using namespace std;
 
 #define SERVER_PORT 1112
-
+#define NUMBER_OF_SETS 19
 struct client_struct
 {
     int desc = 0;
@@ -30,6 +30,7 @@ struct word_struct
 {
     string letters;
     vector<pair<string, bool>> correctWords;
+    bool played = false;
 };
 
 vector<client_struct> allClients;
@@ -43,7 +44,7 @@ bool isGameStarted = false;
 
 void insertAllSets()
 {
-    word_struct word[19];
+    word_struct word[NUMBER_OF_SETS];
 
     word[0].letters = "UMR";
     word[0].correctWords.push_back(make_pair("RUM", false));
@@ -365,6 +366,7 @@ int main(int argc, char ** argv)
     if(serverBind) error(1, errno, "Blad listen");
 
     insertAllSets();
+    srand(time(0));
 
     pthread_t accepting;
     int threadAccepting = pthread_create(&accepting, NULL, acceptingClients, NULL);
@@ -397,7 +399,14 @@ int main(int argc, char ** argv)
                 else if(message[0] == 'g') // wysylamy 1 zestaw liter???
                 {
                     isGameStarted = true;
-                    sendToAllClients(strcat(message, "@"));
+
+                    int firstSet = rand()%NUMBER_OF_SETS;
+                    allSets.at(firstSet).played = true;
+
+                    char firstRound[7] = "";
+                    strcat(firstRound, "g");
+                    strcat(firstRound, allSets.at(firstSet).letters.c_str());
+                    sendToAllClients(strcat(firstRound, "@"));
                     //zrobienie watków do wszystkich graczy
                     break; //wyjscie z petli
                 }

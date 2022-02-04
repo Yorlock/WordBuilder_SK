@@ -135,8 +135,10 @@ void MainWindow::timeInfo(QString message)
 
 void MainWindow::startGameWindowInfo(QString message)
 {
+    cout << "first letters: " << message.toStdString() << "\n";
     ui->waitingroomWidget->setVisible(false);
     ui->gamewindowWidget->setVisible(true);
+    ui->gamewindowWidget->addLettersToUse(message.toStdString());
 }
 
 void MainWindow::tryConnectToServer(QString nick)
