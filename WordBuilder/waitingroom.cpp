@@ -41,6 +41,7 @@ void waitingroom::setUpGameMaster(bool isGameMaster)
 
 void waitingroom::addPlayerToList(QString word)
 {
+    numberOfPlayers++;
     QLabel *qlabel = new QLabel(word,
                              this);
     ui->listOfPlayers->addWidget(qlabel);
@@ -74,3 +75,19 @@ void waitingroom::on_czasRundyspinBox_valueChanged(int roundTime)
     }
 }
 
+
+void waitingroom::on_startGamePushButton_clicked()
+{
+    if(numberOfPlayers > 1)
+    {
+        emit gameStarted();
+    }
+    else
+    {
+        ui->errorLabel->setText("Za mało graczy!");
+        ui->errorLabel->show();
+        QTimer::singleShot(5000, ui->errorLabel, &QLabel::hide);
+    }
+    std::cout << "Number of players: " << numberOfPlayers <<"\n";
+
+}

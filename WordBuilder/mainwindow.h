@@ -38,9 +38,10 @@ private:
     void nickInfo(QString message);
     void roundInfo(QString round);
     void timeInfo(QString time);
-    void gameWindowInfo(QString message);
+    void startGameWindowInfo(QString message);
     void sendRoundNumber(int roundNumber);
     void sendRoundTime(int roundTime);
+    void sendGameStarted();
 
 };
 #endif // MAINWINDOW_H

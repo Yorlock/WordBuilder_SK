@@ -325,7 +325,11 @@ void *acceptingClients(void *)
                 sendNewNickToPlayersInLobby();
             }
             //3 - klient może dołączyć do gry i gra jest rozpoczeta
-            else write(client.desc, "l3@", 3);
+            else
+            {
+                write(client.desc, "l3@", 3);
+                // wysłanie info o dolaczeniu gracza
+            } 
         }
         else
         {
@@ -390,6 +394,13 @@ int main(int argc, char ** argv)
                     strcpy(round, message + 1);
                     roundTime = atoi(round);
                 }
+                else if(message[0] == 'g') // wysylamy 1 zestaw liter???
+                {
+                    isGameStarted = true;
+                    sendToAllClients(strcat(message, "@"));
+                    //zrobienie watków do wszystkich graczy
+                    break; //wyjscie z petli
+                }
 
                 strcat(message, "@");
                 sendToAllClientsWithoutGameMaster(message);
@@ -398,4 +409,10 @@ int main(int argc, char ** argv)
 
         }
     }
+
+    while(1) // rozpoczecie watku od gry;
+    {
+
+    }
+
 }

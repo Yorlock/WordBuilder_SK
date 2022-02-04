@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
     QObject::connect(ui->loginWidget, &login::connectToServer, this, &MainWindow::tryConnectToServer);
     QObject::connect(ui->waitingroomWidget, &waitingroom::roundNumberChanged, this, &MainWindow::sendRoundNumber);
     QObject::connect(ui->waitingroomWidget, &waitingroom::roundTimeChanged, this, &MainWindow::sendRoundTime);
+    QObject::connect(ui->waitingroomWidget, &waitingroom::gameStarted, this, &MainWindow::sendGameStarted);
 }
 
 MainWindow::~MainWindow()
@@ -83,7 +84,7 @@ void MainWindow::socketReadable()
         }
         else if(s[j] == "g")
         {
-            gameWindowInfo(s.mid(j+1));
+            startGameWindowInfo(s.mid(j+1));
         }
     }
 }
@@ -132,9 +133,10 @@ void MainWindow::timeInfo(QString message)
     ui->waitingroomWidget->changeRoundTime(message);
 }
 
-void MainWindow::gameWindowInfo(QString message)
+void MainWindow::startGameWindowInfo(QString message)
 {
-
+    ui->waitingroomWidget->setVisible(false);
+    ui->gamewindowWidget->setVisible(true);
 }
 
 void MainWindow::tryConnectToServer(QString nick)
@@ -174,5 +176,11 @@ void MainWindow::sendRoundTime(int roundTime)
 {
     char message[5] = "t";
     strcat_s(message, to_string(roundTime).c_str());
+    socket->write(message);
+}
+
+void MainWindow::sendGameStarted()
+{
+    char message[2] = "g";
     socket->write(message);
 }
