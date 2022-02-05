@@ -12,8 +12,20 @@
 - z - obecna runda w gamewindow
 - x - obecny czas w gamewindow
 - q - zestaw liter
-- c - caly ranking
+- c - dodanie gracza do rankingu
 - p - slowa z poprzedniej rundy
 - o - odgadniete slowo w rundzie
 - e - koniec rundy
 
+TODO:
+Dodawanie nowego gracza do vectora poll'a
+read/write jak zwroci zero to disconnect
+okno wygrana
+czas w grze u klientów
+sklejanie wiadomości po stronie klienta
+ostrzeżenia z qt
+automatycznie budowanie programu
+lepsze komentarze u serwera
+usunac komentarze w qt
+rozlaczenie gracza (funckja)
+zapetlenie gry

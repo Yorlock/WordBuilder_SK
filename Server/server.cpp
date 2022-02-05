@@ -20,6 +20,7 @@ using namespace std;
 
 #define SERVER_PORT 1112
 #define NUMBER_OF_SETS 15
+
 struct client_struct
 {
     int desc = 0;
@@ -32,7 +33,7 @@ struct word_struct
     string letters;
     vector<pair<string, bool>> correctWords;
     bool played = false;
-    int alreadyGuessed = 0;
+    long unsigned int alreadyGuessed = 0;
 };
 
 vector<client_struct> allClients;
@@ -40,12 +41,14 @@ vector<word_struct> allSets;
 vector<string> ranking;
 client_struct gameMaster;
 int currentSet = 0;
+int previousSet = 0;
 int currentRound = 1;
 int currentTime = 0;
 int socketServer;
-int roundTime = 0;
-int roundNumber = 0;
+int roundTime = 100;
+int roundNumber = 5;
 bool isGameStarted = false;
+bool isTimeOver = false;
 
 void insertAllSets()
 {
@@ -153,27 +156,26 @@ void insertAllSets()
     word[14].correctWords.push_back(make_pair("RAZ", false));
     
     for(word_struct w : word)
-    {
-        /*
-        cout << "letters: " << w.letters <<"\n";
-        for(string s : w.correctWords)
-        {
-            cout << "word: " << s <<"\n";
-        }
-        */
         allSets.push_back(w);
-    }
+}
+
+void disconnectAllClients()
+{
+    for(auto client : allClients)
+		close(client.desc);
 }
 
 int checkCorrectnessOfWord(client_struct client, string word)
 {
-    for(pair w : allSets.at(currentSet).correctWords)
+    
+    for(long unsigned int i=0; i<allSets.at(currentSet).correctWords.size(); i++)
     {
-        if(word == w.first) // takie slowo istnieje
+        if(word == allSets.at(currentSet).correctWords[i].first) // takie slowo istnieje
         {
-            if(!w.second) // nie zgadniety jeszcze - gracz dostaje punkt
+            if(!allSets.at(currentSet).correctWords[i].second) // nie zgadniety jeszcze - gracz dostaje punkt
             {
                 allSets.at(currentSet).alreadyGuessed++;
+                allSets.at(currentSet).correctWords[i].second = true;
                 return 1;
             }
             return 0; // slowo zostalo zgadniete - bez zmian pkt
@@ -225,7 +227,7 @@ void sendToAllClientsWithoutGameMaster(char* message)
     }
 }
 
-void sendToAllClientsWhenWordIsGuessed(client_struct guesser, string word)
+void sendToAllClientsWhenWordIsGuessed(client_struct &guesser, string word)
 {
     int point = checkCorrectnessOfWord(guesser, word);
     guesser.score += point;
@@ -266,6 +268,7 @@ int generateRandomSet()
         if(!allSets.at(set).played)
         {
             allSets.at(set).played = true;
+            previousSet = currentSet;
             currentSet = set;
             return set;
         }
@@ -320,6 +323,7 @@ vector<string> generateRanking()
         helper.append(client.nick);
         helper.append(" ");
         helper.append(to_string(client.score));
+        cout << "Ranking: " << helper <<"\n";
         result.push_back(helper);
     }
     return result;
@@ -355,21 +359,29 @@ void addPlayerToGame(client_struct client)
     sendRoundTimeToClient(client, "x");
     sendRoundNumberToClient(client, "z");
     sendWholeRankingToClient(client, ranking);
-    if(currentRound > 1) sendSolvedWordsToClient(client, allSets.at(currentSet));
-    // wyslanie do pozostalych graczy nowa osobe do rankingu?
+    if(currentRound > 1) sendSolvedWordsToClient(client, allSets.at(previousSet));
+    char message [34] = "c";
+    string helper;
+    helper.append(client.nick);
+    helper.append(" ");
+    helper.append(to_string(client.score));
+    ranking.push_back(helper);
+    strcat(message, helper.c_str());
+    strcat(message, "@");
+    sendToAllClients(message);
 }
 
 void newRound()
 {
     ranking = generateRanking();
+    sendRandomSet(generateRandomSet());
     for(client_struct client : allClients)
     {
         sendRoundTimeToClient(client, "x");
         sendRoundNumberToClient(client, "z");
         sendWholeRankingToClient(client, ranking);
-        if(currentRound > 1) sendSolvedWordsToClient(client, allSets.at(currentSet));
+        sendSolvedWordsToClient(client, allSets.at(previousSet));
     }
-    sendRandomSet(generateRandomSet());
 }
 
 void *acceptingClients(void *)
@@ -382,7 +394,7 @@ void *acceptingClients(void *)
         client.desc = accept(socketServer, (sockaddr*) &clientAddr, &clientAddrSize);
         if(client.desc == -1) error(1, errno, "Blad przy polaczeniu klienta");
         printf("Nowe polaczenie od: %s:%hu (fd: %d)\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port), client.desc);
-        int count = read(client.desc, client.nick, 255);
+        int count = read(client.desc, client.nick, 32);
         if(count == -1) error(1, errno, "Blad read'a");
         if(checkNick(client.nick))
         {
@@ -418,6 +430,172 @@ void *acceptingClients(void *)
     }
 }
 
+void inTheWaitingRoom()
+{
+    while(1)
+    {
+        if(gameMaster.desc)
+        {
+            char message[5];
+            memset(message, 0, 5);
+            int count = read(gameMaster.desc, message, 5);
+            cout << message << "\n";  //if 0 gamemaster sie zapewne rozlaczyl :)
+            if(count == -1) error(1, errno, "Blad read'a");
+            
+            if(count > 0)
+            {
+                if(message[0] == 'r')
+                {
+                    char round[3];
+                    strcpy(round, message + 1);
+                    roundNumber = atoi(round);
+                }
+                else if(message[0] == 't') 
+                {
+                    char round[4];
+                    strcpy(round, message + 1);
+                    roundTime = atoi(round);
+                }
+                else if(message[0] == 'g') // wysylamy 1 zestaw liter???
+                {
+                    char startGame[3] = "";
+                    strcat(startGame, "g");
+                    sendToAllClients(strcat(startGame, "@"));
+                    sendRandomSet(generateRandomSet());
+                    ranking = generateRanking();
+                    for(client_struct client : allClients)
+                    {
+                        sendRoundTimeToClient(client, "x");
+                        sendRoundNumberToClient(client, "z");
+                        sendWholeRankingToClient(client, ranking);
+                    }
+                    isGameStarted = true;
+                    //zrobienie watków do wszystkich graczy
+                    break; //wyjscie z petli
+                }
+
+                strcat(message, "@");
+                sendToAllClientsWithoutGameMaster(message);
+            }
+
+
+        }
+    }
+}
+
+int findClientByFd(int fd)
+{
+    for(unsigned long int i=0; i<allClients.size(); i++)
+    {
+        if(allClients[i].desc == fd) return i;
+    }
+    return 0;
+}
+
+void disconnectClient(int fd)
+{
+    int posOfClient = findClientByFd(fd);
+    allClients.erase(allClients.begin() + posOfClient);
+    close(fd);
+}
+
+void *timer(void *)
+{
+    for(int i=0; i<roundTime; i++)
+    {
+        currentTime--;
+        sleep(1);
+    }
+    isTimeOver = true;
+    return nullptr;
+}
+
+void *listenClientsInGame(void *)
+{
+    vector<pollfd> pollfdDescr;
+    pollfd* address; 
+    for(unsigned long int i=0; i<allClients.size(); i++)
+    {
+        pollfd tmp;
+        tmp.fd = allClients[i].desc;
+        tmp.events = POLLIN;
+        pollfdDescr.push_back(tmp);
+    }
+    address = &pollfdDescr[0];
+
+    while(1)
+    {
+        int ready = poll(address, allClients.size(), -1);
+        if(ready == -1){
+            error(0, errno, "poll failed");
+            closeServer(0);
+        }
+        for(unsigned long int i=0; i<allClients.size() && ready>0; i++)
+        {
+            if(pollfdDescr[i].revents & (POLLERR|POLLHUP|POLLRDHUP)) {
+                error(0, errno, "poll failed");
+                closeServer(0);
+            }
+            if(pollfdDescr[i].revents & POLLIN)
+            {
+                char buffer[255] = "";
+                ssize_t received = read(pollfdDescr[i].fd, buffer, 255);
+                if(received == 0) disconnectClient(pollfdDescr[i].fd);
+                int posOfClient = findClientByFd(pollfdDescr[i].fd);
+                sendToAllClientsWhenWordIsGuessed(allClients[posOfClient], string(buffer));
+            }
+        }
+    }
+    return nullptr;
+}
+
+void inTheGameWindow()
+{
+    isTimeOver = false;
+    currentTime = roundTime;
+
+    pthread_t threadTimer;
+    int threadTimerId = pthread_create(&threadTimer, NULL, timer, NULL);
+    if(threadTimerId) error(1, errno, "Blad watku");
+    
+    pthread_t threadListen;
+    int threadListenId = pthread_create(&threadListen, NULL, listenClientsInGame, NULL);
+    if(threadListenId) error(1, errno, "Blad watku");
+
+    while(1)
+    {
+        if(isTimeOver || allSets.at(currentSet).alreadyGuessed == allSets.at(currentSet).correctWords.size())
+        {
+            currentRound++;
+            if(roundNumber-1 == currentRound) break;
+            if(!isTimeOver) pthread_kill(threadTimerId, SIGUSR1);
+            currentTime = roundTime;
+            newRound();
+            isTimeOver = false;
+            pthread_t threadTimer;
+            int threadTimerId = pthread_create(&threadTimer, NULL, timer, NULL);
+            if(threadTimerId) error(1, errno, "Blad watku");
+        }
+    }
+}
+
+void resetServer()
+{
+    allSets.clear();
+    insertAllSets();
+    disconnectAllClients();
+    allClients.clear();
+    gameMaster.desc = 0;
+    currentSet = 0;
+    previousSet = 0;
+    currentRound = 1;
+    currentTime = 0;
+    roundTime = 100;
+    roundNumber = 5;
+    isGameStarted = false;
+    isTimeOver = false;
+}
+
 int main(int argc, char ** argv)
 {
     printf("Start serwera\n");
@@ -450,56 +628,8 @@ int main(int argc, char ** argv)
 
     while(1)
     {
-        if(gameMaster.desc)
-        {
-            char message[5];
-            memset(message, 0, 5);
-            int count = read(gameMaster.desc, message, 5);
-            //cout << count << "\n";  //if 0 gamemaster sie zapewne rozlaczyl :)
-            if(count == -1) error(1, errno, "Blad read'a");
-            
-            if(count > 0) //do wyjebania jak ogarniemy* discconecta gamemastera     *jeśli
-            {
-                if(message[0] == 'r')
-                {
-                    char round[3];
-                    strcpy(round, message + 1);
-                    roundNumber = atoi(round);
-                }
-                else if(message[0] == 't') 
-                {
-                    char round[4];
-                    strcpy(round, message + 1);
-                    roundTime = atoi(round);
-                }
-                else if(message[0] == 'g') // wysylamy 1 zestaw liter???
-                {
-                    char startGame[3] = "";
-                    strcat(startGame, "g");
-                    sendToAllClients(strcat(startGame, "@"));
-                    sendRandomSet(generateRandomSet());
-
-                    for(client_struct client : allClients)
-                    {
-                        sendRoundTimeToClient(client, "x");
-                        sendRoundNumberToClient(client, "z");
-                    }
-                    isGameStarted = true;
-                    //zrobienie watków do wszystkich graczy
-                    break; //wyjscie z petli
-                }
-
-                strcat(message, "@");
-                sendToAllClientsWithoutGameMaster(message);
-            }
-
-
-        }
+        inTheWaitingRoom();
+        inTheGameWindow();
+        resetServer();
     }
-    newRound();
-    while(1) // rozpoczecie watku od gry;
-    {
-     
-    }
-
 }

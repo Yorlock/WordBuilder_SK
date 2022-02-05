@@ -140,8 +140,10 @@ void gamewindow::addBuildedWord(QString word)
 void gamewindow::on_guessPushButton_clicked()
 {
     QString word = ui->inputLineEdit->text().trimmed();
+    ui->inputLineEdit->setText("");
     if(word.compare("") == 1)
     {
         emit sendWordToMainWindow(word);
     }
+
 }

@@ -41,7 +41,6 @@ private:
     void currentSetOfLetters(QString message);
     void addPlayerToRanking(QString message);
     void wordsFromPreviousRound(QString message);
-    void endOfRound();
     void guessedWord(QString message);
     void roundInfo(QString round);
     void timeInfo(QString time);

@@ -107,10 +107,6 @@ void MainWindow::socketReadable()
         {
             wordsFromPreviousRound(s.mid(j+1));
         }
-        else if(s[j] == "e")
-        {
-            endOfRound();
-        }
         else if(s[j] == "o")
         {
             guessedWord(s.mid(j+1));
@@ -180,7 +176,10 @@ void MainWindow::currentTimeInGame(QString message)
 
 void MainWindow::currentSetOfLetters(QString message)
 {
+    ui->gamewindowWidget->removeFromBuildedWordsLayout();
     ui->gamewindowWidget->removeFromLettersToUseLayout();
+    ui->gamewindowWidget->removeFromRankingVerticalLayout();
+    ui->gamewindowWidget->removeFromSolvedVerticalLayout();
     ui->gamewindowWidget->addLettersToUse(message.toStdString());
 }
 
@@ -192,15 +191,6 @@ void MainWindow::addPlayerToRanking(QString message)
 void MainWindow::wordsFromPreviousRound(QString message)
 {
     ui->gamewindowWidget->addWordToPreviousRound(message);
-}
-
-void MainWindow::endOfRound()
-{
-    //
-    ui->gamewindowWidget->removeFromBuildedWordsLayout();
-    ui->gamewindowWidget->removeFromLettersToUseLayout();
-    ui->gamewindowWidget->removeFromRankingVerticalLayout();
-    ui->gamewindowWidget->removeFromSolvedVerticalLayout();
 }
 
 void MainWindow::guessedWord(QString message)
@@ -256,7 +246,8 @@ void MainWindow::sendGameStarted()
 
 void MainWindow::sendWordToServer(QString word)
 {
-    char message[31] = "o";
+    cout << "TUTAJ: " << word.toStdString() <<"\n";
+    char message[31] = "";
     strcat_s(message, word.toStdString().c_str());
     socket->write(message);
 }
