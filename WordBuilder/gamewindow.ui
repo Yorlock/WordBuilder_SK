@@ -223,7 +223,7 @@
   <widget class="QLabel" name="timeLabelText">
    <property name="geometry">
     <rect>
-     <x>660</x>
+     <x>650</x>
      <y>10</y>
      <width>41</width>
      <height>21</height>
@@ -306,9 +306,9 @@
   <widget class="QLabel" name="timeLabelValue">
    <property name="geometry">
     <rect>
-     <x>710</x>
+     <x>700</x>
      <y>10</y>
-     <width>71</width>
+     <width>81</width>
      <height>21</height>
     </rect>
    </property>
@@ -324,7 +324,7 @@
   <widget class="QLabel" name="roundLabelValue">
    <property name="geometry">
     <rect>
-     <x>60</x>
+     <x>70</x>
      <y>10</y>
      <width>71</width>
      <height>21</height>

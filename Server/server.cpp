@@ -37,6 +37,7 @@ struct word_struct
 
 vector<client_struct> allClients;
 vector<word_struct> allSets;
+vector<string> ranking;
 client_struct gameMaster;
 int currentSet = 0;
 int currentRound = 1;
@@ -348,17 +349,27 @@ void sendSolvedWordsToClient(client_struct client, word_struct words)
     }
 }
 
+void addPlayerToGame(client_struct client)
+{
+    sendRandomSet(currentSet);
+    sendRoundTimeToClient(client, "x");
+    sendRoundNumberToClient(client, "z");
+    sendWholeRankingToClient(client, ranking);
+    if(currentRound > 1) sendSolvedWordsToClient(client, allSets.at(currentSet));
+    // wyslanie do pozostalych graczy nowa osobe do rankingu?
+}
+
 void newRound()
 {
-    sendRandomSet(generateRandomSet());
-    vector<string> ranking = generateRanking();
+    ranking = generateRanking();
     for(client_struct client : allClients)
     {
         sendRoundTimeToClient(client, "x");
         sendRoundNumberToClient(client, "z");
         sendWholeRankingToClient(client, ranking);
-        sendSolvedWordsToClient(client, allSets.at(currentSet));
+        if(currentRound > 1) sendSolvedWordsToClient(client, allSets.at(currentSet));
     }
+    sendRandomSet(generateRandomSet());
 }
 
 void *acceptingClients(void *)
@@ -394,10 +405,7 @@ void *acceptingClients(void *)
             else
             {
                 write(client.desc, "l3@", 3);
-                sendRandomSet(currentSet);
-                sendRoundTimeToClient(client, "x");
-                sendRoundNumberToClient(client, "z");
-                // wysłanie info o dolaczeniu gracza
+                addPlayerToGame(client);
             }
         }
         else
