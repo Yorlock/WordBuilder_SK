@@ -15,6 +15,7 @@ q - zestaw liter
 
 c - caly ranking
 p - slowa z poprzedniej rundy
-e - koniec rundy
 o - odgadniete slowo w rundzie
+
+e - koniec rundy
 

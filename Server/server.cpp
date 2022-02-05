@@ -14,6 +14,7 @@
 #include <string.h>
 #include <iostream>
 #include <utility>
+#include <bits/stdc++.h>
 
 using namespace std;
 
@@ -169,17 +170,15 @@ int checkCorrectnessOfWord(client_struct client, string word)
     {
         if(word == w.first) // takie slowo istnieje
         {
-            if(!w.second) //nie zgadniety jeszcze - gracz dostaje punkt
+            if(!w.second) // nie zgadniety jeszcze - gracz dostaje punkt
             {
                 allSets.at(currentSet).alreadyGuessed++;
                 return 1;
             }
-            //slowo zostalo zgadniete - bez zmian pkt
-            return 0;
+            return 0; // slowo zostalo zgadniete - bez zmian pkt
         }
     }
-    return -1;
-    // gracz traci punkt
+    return -1; // gracz traci punkt
 }
 
 void sendRoundTimeToClient(client_struct client, string typeOfMessage)
@@ -225,6 +224,18 @@ void sendToAllClientsWithoutGameMaster(char* message)
     }
 }
 
+void sendToAllClientsWhenWordIsGuessed(client_struct guesser, string word)
+{
+    int point = checkCorrectnessOfWord(guesser, word);
+    guesser.score += point;
+    if(point == 1)
+    {
+        char message[10] = "";
+        strcat(message, "o");
+        strcat(message, word.c_str());
+        sendToAllClients(strcat(message, "@"));
+    }
+}
 
 void sendNewNickToPlayersInLobby()
 {
@@ -293,25 +304,61 @@ bool checkNick(char* nick)
     return true;
 }
 
+bool compareTwoClients(client_struct a, client_struct b)
+{
+    return a.score > b.score;
+}
+
+vector<string> generateRanking()
+{
+    vector<string> result;
+    sort(allClients.begin(), allClients.end(), compareTwoClients);
+    for(client_struct client : allClients)
+    {
+        string helper;
+        helper.append(client.nick);
+        helper.append(" ");
+        helper.append(to_string(client.score));
+        result.push_back(helper);
+    }
+    return result;
+}
+
+void sendWholeRankingToClient(client_struct client, vector<string> ranking)
+{
+    for(string s : ranking)
+    {
+        char message[34] = "";
+        strcat(message, "c");
+        strcat(message, s.c_str());
+        strcat(message, "@");
+        write(client.desc, message, sizeof(message));
+    }
+}
+
+void sendSolvedWordsToClient(client_struct client, word_struct words)
+{
+    for(pair word : words.correctWords)
+    {
+        char message[10] = "";
+        strcat(message, "p");
+        strcat(message, word.first.c_str());
+        strcat(message, "@");
+        write(client.desc, message, sizeof(message));
+    }
+}
+
 void newRound()
 {
     sendRandomSet(generateRandomSet());
-    // generateRanking(); //generowanie rankingu do zmiennej vector<string> ranking <-stworz ją!
+    vector<string> ranking = generateRanking();
     for(client_struct client : allClients)
     {
         sendRoundTimeToClient(client, "x");
         sendRoundNumberToClient(client, "z");
-        //funkcja do wysyłania wszystkich wartosci z zmiennej ranking do klienta <- stworz ją!
-
+        sendWholeRankingToClient(client, ranking);
+        sendSolvedWordsToClient(client, allSets.at(currentSet));
     }
-
-    for(pair word : allSets.at(currentSet).correctWords)
-    {
-        // sendToAllClients(word.first) // wysłanie slowa do wszystkich klientow
-        word.second = false;
-    }
-    // previous round solutions
-
 }
 
 void *acceptingClients(void *)
@@ -324,7 +371,6 @@ void *acceptingClients(void *)
         client.desc = accept(socketServer, (sockaddr*) &clientAddr, &clientAddrSize);
         if(client.desc == -1) error(1, errno, "Blad przy polaczeniu klienta");
         printf("Nowe polaczenie od: %s:%hu (fd: %d)\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port), client.desc);
-        
         int count = read(client.desc, client.nick, 255);
         if(count == -1) error(1, errno, "Blad read'a");
         if(checkNick(client.nick))
@@ -442,10 +488,10 @@ int main(int argc, char ** argv)
 
         }
     }
-
+    newRound();
     while(1) // rozpoczecie watku od gry;
     {
-
+     
     }
 
 }
