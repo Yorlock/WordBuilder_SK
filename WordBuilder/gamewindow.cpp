@@ -21,6 +21,7 @@ void gamewindow::setUpGUI()
     qfont.setBold(true);
     qfont.setPixelSize(24);
     qfontNick.setPixelSize(16);
+    qfontNick.setBold(true);
 }
 
 void gamewindow::addLettersToUse(std::string letters)
