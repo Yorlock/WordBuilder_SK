@@ -7,6 +7,8 @@ gamewindow::gamewindow(QWidget *parent) :
 {
     ui->setupUi(this);
     setUpGUI();
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(decreaseTime()));
     //addLettersToUse("TEdST");
     //addBuildedWord("TEasdasdasdasdST");
 }
@@ -47,6 +49,13 @@ void gamewindow::removeFromLettersToUseLayout()
         }
         delete child;
     }
+}
+
+void gamewindow::decreaseTime()
+{
+    int time = ui->timeLabelValue->text().toInt();
+    time--;
+    if(time > 0) ui->timeLabelValue->setText(QString::number(time));
 }
 
 void gamewindow::removeFromBuildedWordsLayout()
@@ -99,6 +108,7 @@ void gamewindow::changeRound(QString round)
 void gamewindow::changeRoundTime(QString time)
 {
     ui->timeLabelValue->setText(time);
+    timer->start(1000);
 }
 
 void gamewindow::addPlayerToRanking(QString word)
@@ -139,7 +149,7 @@ void gamewindow::addBuildedWord(QString word)
 
 void gamewindow::on_guessPushButton_clicked()
 {
-    QString word = ui->inputLineEdit->text().trimmed();
+    QString word = ui->inputLineEdit->text().trimmed().toUpper();
     ui->inputLineEdit->setText("");
     if(word.compare("") == 1)
     {

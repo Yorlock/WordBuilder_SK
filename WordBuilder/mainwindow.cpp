@@ -107,9 +107,17 @@ void MainWindow::socketReadable()
         {
             wordsFromPreviousRound(s.mid(j+1));
         }
+        else if(s[j] == "Q")
+        {
+            clientDisconnect(s.mid(j+1));
+        }
         else if(s[j] == "o")
         {
             guessedWord(s.mid(j+1));
+        }
+        else if(s[j] == "a")
+        {
+            newGameMaster();
         }
     }
 }
@@ -144,6 +152,11 @@ void MainWindow::nickInfo(QString message)
 {
     std::cout << "Nick: " << message.toStdString() <<"\n";
     ui->waitingroomWidget->addPlayerToList(message);
+}
+
+void MainWindow::clientDisconnect(QString message)
+{
+    ui->waitingroomWidget->erasePlayer(message);
 }
 
 void MainWindow::roundInfo(QString message)
@@ -196,6 +209,11 @@ void MainWindow::wordsFromPreviousRound(QString message)
 void MainWindow::guessedWord(QString message)
 {
     ui->gamewindowWidget->addGuessedWord(message);
+}
+
+void MainWindow::newGameMaster()
+{
+    ui->waitingroomWidget->waitingroom::setUpGameMaster(true);
 }
 
 void MainWindow::tryConnectToServer(QString nick)

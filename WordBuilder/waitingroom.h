@@ -22,6 +22,7 @@ public:
     void setUpGameMaster(bool isGameMaster);
     void changeRoundNumber(QString roundNumber);
     void changeRoundTime(QString roundTime);
+    void erasePlayer(QString nick);
     int numberOfPlayers = 0;
 
 private slots:

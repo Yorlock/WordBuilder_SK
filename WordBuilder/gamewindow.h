@@ -3,6 +3,8 @@
 
 #include <QWidget>
 #include <string>
+#include <QTimer>
+#include <string>
 
 namespace Ui {
 class gamewindow;
@@ -26,6 +28,8 @@ public:
     void addBuildedWord(QString word);
     void changeRound(QString round);
     void changeRoundTime(QString time);
+public slots:
+    void decreaseTime();
 
 signals:
     void sendWordToMainWindow(QString word);
@@ -37,6 +41,7 @@ private:
     Ui::gamewindow *ui;
     void setUpGUI();
     QFont qfont;
+    QTimer *timer;
 
 };
 

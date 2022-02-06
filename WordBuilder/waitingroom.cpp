@@ -44,6 +44,7 @@ void waitingroom::addPlayerToList(QString word)
     numberOfPlayers++;
     QLabel *qlabel = new QLabel(word,
                              this);
+    qlabel->setAccessibleName(word);
     ui->listOfPlayers->addWidget(qlabel);
     ui->listOfPlayers->setAlignment(qlabel, Qt::AlignHCenter | Qt::AlignTop);
     qlabel->setFont(qfont);
@@ -57,6 +58,19 @@ void waitingroom::changeRoundNumber(QString roundNumber)
 void waitingroom::changeRoundTime(QString roundTime)
 {
     ui->czasRundyspinBox->setValue(roundTime.toInt());
+}
+
+void waitingroom::erasePlayer(QString nick)
+{
+    std::cout<< "usuwanie gracza" <<"\n";
+    QWidget *widget;
+    for(int i = 0; i < ui->listOfPlayers->count(); i++)
+    {
+        widget = ui->listOfPlayers->itemAt(i)->widget();
+        if(widget->accessibleName() == nick) break;
+    }
+    widget->hide();
+    ui->listOfPlayers->removeWidget(widget);
 }
 
 void waitingroom::on_liczbaRundspinBox_valueChanged(int roundNumber)
@@ -75,7 +89,6 @@ void waitingroom::on_czasRundyspinBox_valueChanged(int roundTime)
     }
 }
 
-
 void waitingroom::on_startGamePushButton_clicked()
 {
     if(numberOfPlayers > 1)
@@ -89,5 +102,4 @@ void waitingroom::on_startGamePushButton_clicked()
         QTimer::singleShot(5000, ui->errorLabel, &QLabel::hide);
     }
     std::cout << "Number of players: " << numberOfPlayers <<"\n";
-
 }

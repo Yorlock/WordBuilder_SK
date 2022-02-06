@@ -50,6 +50,8 @@ private:
     void sendRoundTime(int roundTime);
     void sendGameStarted();
     void sendWordToServer(QString word);
+    void newGameMaster();
+    void clientDisconnect(QString word);
 
 };
 #endif // MAINWINDOW_H
