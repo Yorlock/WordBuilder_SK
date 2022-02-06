@@ -20,6 +20,7 @@ void gamewindow::setUpGUI()
 {
     qfont.setBold(true);
     qfont.setPixelSize(24);
+    qfontNick.setPixelSize(16);
 }
 
 void gamewindow::addLettersToUse(std::string letters)
@@ -115,7 +116,7 @@ void gamewindow::addPlayerToRanking(QString word)
                              this);
     ui->rankingVerticalLayout->addWidget(qlabel);
     ui->rankingVerticalLayout->setAlignment(qlabel, Qt::AlignHCenter | Qt::AlignTop);
-    qlabel->setFont(qfont);
+    qlabel->setFont(qfontNick);
 }
 
 void gamewindow::addWordToPreviousRound(QString word)

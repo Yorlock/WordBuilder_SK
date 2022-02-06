@@ -41,6 +41,7 @@ private:
     Ui::gamewindow *ui;
     void setUpGUI();
     QFont qfont;
+    QFont qfontNick;
     QTimer *timer;
 
 };
