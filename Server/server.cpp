@@ -187,7 +187,6 @@ void disconnectClient(int fd)
             {
                 int tmp = write(allClients[i].desc, message, sizeof(message));
                 if (tmp == -1) error(1, errno, "Blad podczas wysylania");
-                cout << "Send Q: " << allClients[posOfClient].nick<<"\n";
             }
         }
     }
@@ -454,9 +453,10 @@ void *listenWaitingRoom(void *)
             error(0, errno, "Poll failed\n");
             closeServer(0);
         }
-        for(unsigned long int i=0; i<allClients.size() && ready>0; i++)
+        for(unsigned long int i=1; i<allClients.size() && ready>0; i++)
         {
             if(pollfdDescr[i].revents & (POLLERR|POLLHUP|POLLRDHUP)) {
+                if(isGameStarted) return nullptr;
                 error(0, errno, "Poll failed2\n");
                 closeServer(0);
             }
@@ -591,7 +591,7 @@ void inTheWaitingRoom()
             char message[5];
             memset(message, 0, 5);
             int count = read(gameMaster.desc, message, 5);
-            if(count == -1) error(1, errno, "Blad read'a");
+            if(count == -1) error(1, errno, "Blad read'a\n");
             else if (count == 0) disconnectGameMaster();          
             else if(count > 0)
             {

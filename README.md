@@ -20,9 +20,3 @@
 - E - koniec gry
 - L - koniec gry, za mało graczy
 - C - dodanie gracza do rankingu w menu końcowym
-
-TODO:
-
-automatycznie budowanie programu
-
-rozlaczenie gracza (funckja)

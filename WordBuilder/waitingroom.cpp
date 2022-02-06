@@ -69,6 +69,7 @@ void waitingroom::erasePlayer(QString nick)
         widget = ui->listOfPlayers->itemAt(i)->widget();
         if(widget->accessibleName() == nick) break;
     }
+    numberOfPlayers--;
     widget->hide();
     ui->listOfPlayers->removeWidget(widget);
 }
