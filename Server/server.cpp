@@ -169,12 +169,13 @@ int findClientByFd(int fd)
     {
         if(allClients[i].desc == fd) return i;
     }
-    return 0;
+    return -1;
 }
 
 void disconnectClient(int fd)
 {
     int posOfClient = findClientByFd(fd);
+    if(posOfClient == -1) return;
     if(!isGameStarted) 
     {
         char message[34] = "Q";
@@ -185,13 +186,7 @@ void disconnectClient(int fd)
             if(i != posOfClient)
             {
                 int tmp = write(allClients[i].desc, message, sizeof(message));
-                if (tmp == -1) 
-                {
-                    auto err = errno;
-                    cout <<err<<"\n";
-                    if(err == 32) disconnectClient(allClients[i].desc);
-                    else error(1, err, "Blad podczas wysylania");
-                }
+                if (tmp == -1) error(1, errno, "Blad podczas wysylania");
                 cout << "Send Q: " << allClients[posOfClient].nick<<"\n";
             }
         }
@@ -242,13 +237,7 @@ void sendRoundTimeToClient(client_struct client, string typeOfMessage)
     else strcat(message, std::to_string(roundTime).c_str());
     strcat(message, "@");
     int tmp = write(client.desc, message, sizeof(message));
-    if (tmp == -1) 
-    {
-        auto err = errno;
-        cout <<err<<"\n";
-        if(err == 32) disconnectClient(client.desc);
-        else error(1, err, "Blad podczas wysylania");
-    }
+    if (tmp == -1) error(1, errno, "Blad podczas wysylania");
 }
 
 void sendRoundNumberToClient(client_struct client, string typeOfMessage)
@@ -260,13 +249,7 @@ void sendRoundNumberToClient(client_struct client, string typeOfMessage)
     else strcat(message, std::to_string(roundNumber).c_str());
     strcat(message, "@");
     int tmp = write(client.desc, message, sizeof(message));
-    if (tmp == -1) 
-    {
-        auto err = errno;
-        cout <<err<<"\n";
-        if(err == 32) disconnectClient(client.desc);
-        else error(1, err, "Blad podczas wysylania");
-    }
+    if (tmp == -1) error(1, errno, "Blad podczas wysylania");
 }
 
 void sendToAllClients(char* message)
@@ -274,13 +257,7 @@ void sendToAllClients(char* message)
     for(auto client : allClients)
     {                     
         int tmp = write(client.desc, message, strlen(message));
-        if (tmp == -1) 
-        {
-            auto err = errno;
-            cout <<err<<"\n";
-            if(err == 32) disconnectClient(client.desc);
-            else error(1, err, "Blad podczas wysylania");
-        }
+        if (tmp == -1) error(1, errno, "Blad podczas wysylania");
         cout<< "(All) Fd: " << client.desc <<" msg: " << message << endl;
     }
 }
@@ -292,13 +269,7 @@ void sendToAllClientsWithoutGameMaster(char* message)
         if(client.desc != gameMaster.desc) 
         {
             int tmp = write(client.desc, message, strlen(message));
-            if (tmp == -1) 
-            {       
-                auto err = errno;
-                       cout <<err<<"\n";
-                if(err == 32) disconnectClient(client.desc);
-                else error(1, err, "Blad podczas wysylania");
-            }
+            if (tmp == -1) error(1, errno, "Blad podczas wysylania");
             cout<< "(All) Fd: " << client.desc <<" msg: " << message << endl;
         }
     }
@@ -326,13 +297,7 @@ void sendNewNickToPlayersInLobby()
         strcat(message, allClients[i].nick);
         strcat(message, "@");
         int tmp = write(lastClient.desc, message, sizeof(message));
-        if (tmp == -1) 
-        {
-            auto err = errno;
-            cout <<err<<"\n";
-            if(err == 32) disconnectClient(lastClient.desc);
-            else error(1, err, "Blad podczas wysylania");
-        }
+        if (tmp == -1) error(1, errno, "Blad podczas wysylania");
         cout << "(last joined) Fd: "<< lastClient.desc << " msg: " << message << endl;
     }
     sendRoundTimeToClient(lastClient, "t");
@@ -375,13 +340,7 @@ void sendRandomSet(client_struct client, int set)
     strcat(buffor, allSets.at(set).letters.c_str());
     strcat(buffor, "@");
     int tmp = write(client.desc, buffor, strlen(buffor));
-    if (tmp == -1) 
-    {
-        auto err = errno;
-        cout <<err<<"\n";
-        if(err == 32) disconnectClient(client.desc);
-        else error(1, err, "Blad podczas wysylania");
-    }
+    if (tmp == -1) error(1, errno, "Blad podczas wysylania");
 }
 
 void setReuseAddr(int sock)
@@ -439,13 +398,7 @@ void sendWholeRankingToClient(client_struct client, vector<string> ranking)
         strcat(message, s.c_str());
         strcat(message, "@");
         int tmp = write(client.desc, message, sizeof(message));
-        if (tmp == -1) 
-        {
-            auto err = errno;
-            cout <<err<<"\n";
-            if(err == 32) disconnectClient(client.desc);
-            else error(1, err, "Blad podczas wysylania");
-        }
+        if (tmp == -1) error(1, errno, "Blad podczas wysylania");
     }
 }
 
@@ -458,13 +411,7 @@ void sendWholeRankingAfterGameToClient(client_struct client, vector<string> rank
         strcat(message, s.c_str());
         strcat(message, "@");
         int tmp = write(client.desc, message, sizeof(message));
-        if (tmp == -1) 
-        {
-            auto err = errno;
-            cout <<err<<"\n";
-            if(err == 32) disconnectClient(client.desc);
-            else error(1, err, "Blad podczas wysylania");
-        }
+        if (tmp == -1) error(1, errno, "Blad podczas wysylania");
     }
 }
 
@@ -477,13 +424,7 @@ void sendSolvedWordsToClient(client_struct client, word_struct words)
         strcat(message, word.first.c_str());
         strcat(message, "@");
         int tmp = write(client.desc, message, sizeof(message));
-        if (tmp == -1) 
-        {
-            auto err = errno;
-            cout <<err<<"\n";
-            if(err == 32) disconnectClient(client.desc);
-            else error(1, err, "Blad podczas wysylania");
-        }
+        if (tmp == -1) error(1, errno, "Blad podczas wysylania");
     }
 }
 
@@ -498,15 +439,39 @@ void sendGuessedWords(client_struct client, int set)
             strcat(message, word.first.c_str());
             strcat(message, "@");
             int tmp = write(client.desc, message, sizeof(message));
-            if (tmp == -1) 
+            if (tmp == -1) error(1, errno, "Blad podczas wysylania");
+        }
+    }
+}
+
+void *listenWaitingRoom(void *)
+{
+    while(1)
+    {
+        int ready = poll(&pollfdDescr[0], pollfdDescr.size(), 100);
+        if(isGameStarted) return nullptr;
+        if(ready == -1){
+            error(0, errno, "Poll failed\n");
+            closeServer(0);
+        }
+        for(unsigned long int i=0; i<allClients.size() && ready>0; i++)
+        {
+            if(pollfdDescr[i].revents & (POLLERR|POLLHUP|POLLRDHUP)) {
+                error(0, errno, "Poll failed2\n");
+                closeServer(0);
+            }
+            if(pollfdDescr[i].revents & POLLIN)
             {
-            auto err = errno;
-            cout <<err<<"\n";
-            if(err == 32) disconnectClient(client.desc);
-            else error(1, err, "Blad podczas wysylania");
+                ssize_t received = read(pollfdDescr[i].fd, nullptr, 0);
+                if(received == -1) error(1, errno, "Blad read'a\n");
+                else if(received == 0) 
+                {
+                    disconnectClient(pollfdDescr[i].fd);
+                }
             }
         }
     }
+    return nullptr;
 }
 
 void addPlayerToGame(client_struct client)
@@ -557,7 +522,9 @@ void *acceptingClients(void *)
         printf("Nowe polaczenie od: %s:%hu (fd: %d)\n", inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port), client.desc);
         int count = read(client.desc, client.nick, 32);
         if(count == -1) error(1, errno, "Blad read'a");
-        else if (count == 0) disconnectClient(client.desc);
+        else if (count == 0) {
+            disconnectClient(client.desc);
+        }
         else{
             if(checkNick(client.nick))
             {
@@ -568,39 +535,29 @@ void *acceptingClients(void *)
                 if(!isGameStarted && allClients.size() == 1)
                 {
                     int tmp = write(client.desc, "l1@", 3);
-                    if (tmp == -1) 
-                    {
-                        auto err = errno;
-                        cout <<err<<"\n";
-                        if(err == 32) disconnectClient(client.desc);
-                        else error(1, err, "Blad podczas wysylania");
-                    }
+                    if (tmp == -1) error(1, errno, "Blad podczas wysylania");
                     sendNewNickToPlayersInLobby();
+                    pollfd helper;
+                    helper.fd = client.desc;
+                    helper.events = POLLIN;
+                    pollfdDescr.push_back(helper);
                 }
                 //2 - klient może dołączyć do gry i gra nie jest rozpoczeta
                 else if(!isGameStarted)
                 {
                     int tmp = write(client.desc, "l2@", 3);
-                    if (tmp == -1) 
-                    {
-                        auto err = errno;
-                        cout <<err<<"\n";
-                        if(err == 32) disconnectClient(client.desc);
-                        else error(1, err, "Blad podczas wysylania");
-                    }
+                    if (tmp == -1) error(1, errno, "Blad podczas wysylania");
                     sendNewNickToPlayersInLobby();
+                    pollfd helper;
+                    helper.fd = client.desc;
+                    helper.events = POLLIN;
+                    pollfdDescr.push_back(helper);
                 }
                 //3 - klient może dołączyć do gry i gra jest rozpoczeta
                 else
                 {
                     int tmp = write(client.desc, "l3@", 3);
-                    if (tmp == -1) 
-                    {
-                        auto err = errno;
-                        cout <<err<<"\n";
-                        if(err == 32) disconnectClient(client.desc);
-                        else error(1, err, "Blad podczas wysylania");
-                    }
+                    if (tmp == -1) error(1, errno, "Blad podczas wysylania");
                     addPlayerToGame(client);
                 }
             }
@@ -609,13 +566,7 @@ void *acceptingClients(void *)
                 printf("Nick: %s jest juz zajety\n", client.nick);
                 //4 - klient nie moze dolaczyc do rozrywki
                 int tmp = write(client.desc, "l4@", 3);
-                if (tmp == -1) 
-                {
-                    auto err = errno;
-                    cout <<err<<"\n";
-                    if(err == 32) disconnectClient(client.desc);
-                    else error(1, err, "Blad podczas wysylania");
-                }
+                if (tmp == -1) error(1, errno, "Blad podczas wysylania");
                 close(client.desc);
             }
         }
@@ -625,26 +576,14 @@ void *acceptingClients(void *)
 void disconnectGameMaster()
 {
     disconnectClient(gameMaster.desc);
-    if(!allClients.empty()) 
-    {
-        gameMaster = allClients[0];
-        char message[3] = "";
-        strcat(message, "a");
-        strcat(message, "@");
-        int tmp = write(gameMaster.desc, message, 3);
-        if (tmp == -1) 
-        {
-            auto err = errno;
-            cout <<err<<"\n";
-            if(err == 32) disconnectClient(gameMaster.desc);
-            else error(1, err, "Blad podczas wysylania");
-        }
-    }
-    else gameMaster.desc = 0;
+    gameMaster.desc = 0;
 }
 
 void inTheWaitingRoom()
 {
+    pthread_t threadListen;
+    int threadListenId = pthread_create(&threadListen, NULL, listenWaitingRoom, NULL);
+    if(threadListenId) error(1, errno, "Blad watku\n");
     while(1)
     {
         if(gameMaster.desc)
@@ -668,7 +607,7 @@ void inTheWaitingRoom()
                     strcpy(round, message + 1);
                     roundTime = atoi(round);
                 }
-                else if(message[0] == 'g') // wysylamy 1 zestaw liter???
+                else if(message[0] == 'g')
                 {
                     char startGame[3] = "";
                     strcat(startGame, "g");
@@ -682,13 +621,20 @@ void inTheWaitingRoom()
                         sendWholeRankingToClient(client, ranking);
                     }
                     isGameStarted = true;
-                    //zrobienie watków do wszystkich graczy
-                    break; //wyjscie z petli
+                    break;
                 }
 
                 strcat(message, "@");
                 sendToAllClientsWithoutGameMaster(message);
             }
+        }
+        else if (!allClients.empty()) {
+            gameMaster = allClients[0];
+            char message[3] = "";
+            strcat(message, "a");
+            strcat(message, "@");
+            int tmp = write(gameMaster.desc, message, 3);
+            if (tmp == -1) error(1, errno, "Blad podczas wysylania");
         }
     }
 }
@@ -730,6 +676,7 @@ void *timer(void *)
 
 void *listenClientsInGame(void *)
 {
+    pollfdDescr.clear();
     for(unsigned long int i=0; i<allClients.size(); i++)
     {
         pollfd tmp;
