@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QMessageBox>
 
 using namespace std;
 
@@ -26,6 +27,7 @@ void MainWindow::setUpGUI()
 {
     ui->gamewindowWidget->setVisible(false);
     ui->waitingroomWidget->setVisible(false);
+    ui->endGameRankingWidget->setVisible(false);
 }
 
 void MainWindow::socketConnected()
@@ -38,7 +40,6 @@ void MainWindow::socketConnected()
 
 void MainWindow::socketDisconnected()
 {
-    /*
     if(!ui->loginWidget->isNickBusy)
     {
         ui->loginWidget->setVisible(true);
@@ -47,8 +48,6 @@ void MainWindow::socketDisconnected()
         ui->loginWidget->showMessage("Disconnected");
     }
     ui->loginWidget->isNickBusy = false;
-    */
-
 }
 
 void MainWindow::socketReadable()
@@ -119,12 +118,23 @@ void MainWindow::socketReadable()
         {
             newGameMaster();
         }
+        else if(s[j] == "E")
+        {
+            gameIsOver();
+        }
+        else if(s[j] == "C")
+        {
+            addPlayerToRankingAfterGameFinished(s.mid(j+1));
+        }
+        else if(s[j] == "L")
+        {
+            gameIsOverTooLittlePlayers();
+        }
     }
 }
 
 void MainWindow::loginInfo(QString message)
 {
-    std::cout << "Login info: " << message.toStdString() <<"\n";
     if(message == "1")
     {
         ui->waitingroomWidget->waitingroom::setUpGameMaster(true);
@@ -150,7 +160,6 @@ void MainWindow::loginInfo(QString message)
 
 void MainWindow::nickInfo(QString message)
 {
-    std::cout << "Nick: " << message.toStdString() <<"\n";
     ui->waitingroomWidget->addPlayerToList(message);
 }
 
@@ -159,15 +168,32 @@ void MainWindow::clientDisconnect(QString message)
     ui->waitingroomWidget->erasePlayer(message);
 }
 
+void MainWindow::gameIsOver()
+{
+    disconnect(socket, &QTcpSocket::disconnected, this, &MainWindow::socketDisconnected);
+    ui->gamewindowWidget->setVisible(false);
+    ui->loginWidget->setVisible(false);
+    ui->waitingroomWidget->setVisible(false);
+    ui->endGameRankingWidget->setVisible(true);
+}
+
+void MainWindow::gameIsOverTooLittlePlayers()
+{
+    disconnect(socket, &QTcpSocket::disconnected, this, &MainWindow::socketDisconnected);
+    ui->gamewindowWidget->setVisible(false);
+    ui->loginWidget->setVisible(false);
+    ui->waitingroomWidget->setVisible(false);
+    ui->endGameRankingWidget->setVisible(false);
+    QMessageBox::critical(ui->gamewindowWidget, "ERROR", "Za malo graczy! Gra zostala zakonczona.");
+}
+
 void MainWindow::roundInfo(QString message)
 {
-    std::cout << "Round: " << message.toStdString() <<"\n";
     ui->waitingroomWidget->changeRoundNumber(message);
 }
 
 void MainWindow::timeInfo(QString message)
 {
-    std::cout << "Time: " << message.toStdString() <<"\n";
     ui->waitingroomWidget->changeRoundTime(message);
 }
 
@@ -236,8 +262,8 @@ void MainWindow::tryConnectToServer(QString nick)
         });
     connect(socket, &QTcpSocket::connected, this, &MainWindow::socketConnected);
     connect(socket, &QTcpSocket::disconnected, this, &MainWindow::socketDisconnected);
-    //connect(socket, &QTcpSocket::errorOccurred, this, &MainWindow::socketError);
     connect(socket, &QTcpSocket::readyRead, this, &MainWindow::socketReadable);
+    connTimeoutTimer->start(3000);
     socket->connectToHost("127.0.0.1", 1112);
 
 }
@@ -264,8 +290,12 @@ void MainWindow::sendGameStarted()
 
 void MainWindow::sendWordToServer(QString word)
 {
-    cout << "TUTAJ: " << word.toStdString() <<"\n";
     char message[31] = "";
     strcat_s(message, word.toStdString().c_str());
     socket->write(message);
+}
+
+void MainWindow::addPlayerToRankingAfterGameFinished(QString message)
+{
+    ui->endGameRankingWidget->addPlayerToRanking(message);
 }

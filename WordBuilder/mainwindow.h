@@ -44,7 +44,7 @@ private:
     void guessedWord(QString message);
     void roundInfo(QString round);
     void timeInfo(QString time);
-
+    void addPlayerToRankingAfterGameFinished(QString message);
     void startGameWindowInfo();
     void sendRoundNumber(int roundNumber);
     void sendRoundTime(int roundTime);
@@ -52,6 +52,8 @@ private:
     void sendWordToServer(QString word);
     void newGameMaster();
     void clientDisconnect(QString word);
+    void gameIsOver();
+    void gameIsOverTooLittlePlayers();
 
 };
 #endif // MAINWINDOW_H

@@ -101,5 +101,4 @@ void waitingroom::on_startGamePushButton_clicked()
         ui->errorLabel->show();
         QTimer::singleShot(5000, ui->errorLabel, &QLabel::hide);
     }
-    std::cout << "Number of players: " << numberOfPlayers <<"\n";
 }

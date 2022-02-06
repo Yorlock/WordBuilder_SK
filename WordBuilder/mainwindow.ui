@@ -104,6 +104,28 @@
      </size>
     </property>
    </widget>
+   <widget class="endGameRanking" name="endGameRankingWidget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>-21</y>
+      <width>800</width>
+      <height>620</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>800</width>
+      <height>620</height>
+     </size>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>800</width>
+      <height>620</height>
+     </size>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -133,6 +155,12 @@
    <class>gamewindow</class>
    <extends>QWidget</extends>
    <header>gamewindow.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>endGameRanking</class>
+   <extends>QWidget</extends>
+   <header>endgameranking.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -51,6 +51,8 @@ int roundNumber = 5;
 bool isGameStarted = false;
 bool isTimeOver = false;
 
+bool endTimer = false;
+
 void insertAllSets()
 {
     word_struct word[NUMBER_OF_SETS];
@@ -186,7 +188,7 @@ void disconnectClient(int fd)
                 if (tmp == -1) 
                 {
                     auto err = errno;
-                                        cout <<err<<"\n";
+                    cout <<err<<"\n";
                     if(err == 32) disconnectClient(allClients[i].desc);
                     else error(1, err, "Blad podczas wysylania");
                 }
@@ -243,7 +245,7 @@ void sendRoundTimeToClient(client_struct client, string typeOfMessage)
     if (tmp == -1) 
     {
         auto err = errno;
-                                    cout <<err<<"\n";
+        cout <<err<<"\n";
         if(err == 32) disconnectClient(client.desc);
         else error(1, err, "Blad podczas wysylania");
     }
@@ -272,7 +274,6 @@ void sendToAllClients(char* message)
     for(auto client : allClients)
     {                     
         int tmp = write(client.desc, message, strlen(message));
-        cout << "przy wysylaniu nicka: " << tmp << "\n";
         if (tmp == -1) 
         {
             auto err = errno;
@@ -328,7 +329,7 @@ void sendNewNickToPlayersInLobby()
         if (tmp == -1) 
         {
             auto err = errno;
-                                            cout <<err<<"\n";
+            cout <<err<<"\n";
             if(err == 32) disconnectClient(lastClient.desc);
             else error(1, err, "Blad podczas wysylania");
         }
@@ -377,7 +378,7 @@ void sendRandomSet(client_struct client, int set)
     if (tmp == -1) 
     {
         auto err = errno;
-                                    cout <<err<<"\n";
+        cout <<err<<"\n";
         if(err == 32) disconnectClient(client.desc);
         else error(1, err, "Blad podczas wysylania");
     }
@@ -441,7 +442,26 @@ void sendWholeRankingToClient(client_struct client, vector<string> ranking)
         if (tmp == -1) 
         {
             auto err = errno;
-                                cout <<err<<"\n";
+            cout <<err<<"\n";
+            if(err == 32) disconnectClient(client.desc);
+            else error(1, err, "Blad podczas wysylania");
+        }
+    }
+}
+
+void sendWholeRankingAfterGameToClient(client_struct client, vector<string> ranking)
+{
+    for(string s : ranking)
+    {
+        char message[34] = "";
+        strcat(message, "C");
+        strcat(message, s.c_str());
+        strcat(message, "@");
+        int tmp = write(client.desc, message, sizeof(message));
+        if (tmp == -1) 
+        {
+            auto err = errno;
+            cout <<err<<"\n";
             if(err == 32) disconnectClient(client.desc);
             else error(1, err, "Blad podczas wysylania");
         }
@@ -460,7 +480,7 @@ void sendSolvedWordsToClient(client_struct client, word_struct words)
         if (tmp == -1) 
         {
             auto err = errno;
-                                            cout <<err<<"\n";
+            cout <<err<<"\n";
             if(err == 32) disconnectClient(client.desc);
             else error(1, err, "Blad podczas wysylania");
         }
@@ -481,7 +501,7 @@ void sendGuessedWords(client_struct client, int set)
             if (tmp == -1) 
             {
             auto err = errno;
-                                            cout <<err<<"\n";
+            cout <<err<<"\n";
             if(err == 32) disconnectClient(client.desc);
             else error(1, err, "Blad podczas wysylania");
             }
@@ -673,14 +693,37 @@ void inTheWaitingRoom()
     }
 }
 
+void sendToAllClientsThatGameIsOver()
+{
+    char message[3] = "E";
+    strcat(message, "@");
+    sendToAllClients(message);
+    ranking = generateRanking();
+    for(client_struct client : allClients)
+        sendWholeRankingAfterGameToClient(client, ranking);
+}
+
+void endGameTooLittlePlayers()
+{
+    cout << "Gra została zakończona. Za mało graczy.\n";
+    char message[3] = "L";
+    strcat(message, "@");
+    sendToAllClients(message);
+}
+
 void *timer(void *)
 {
     for(int i=0; i<roundTime; i++)
     {
-        if(allSets.at(currentSet).alreadyGuessed == allSets.at(currentSet).correctWords.size()) return nullptr;
+        if(endTimer || allSets.at(currentSet).alreadyGuessed == allSets.at(currentSet).correctWords.size())
+        {
+            endTimer = false;
+            return nullptr;
+        }
         currentTime--;
         sleep(1);
     }
+    endTimer = false;
     isTimeOver = true;
     return nullptr;
 }
@@ -697,22 +740,24 @@ void *listenClientsInGame(void *)
 
     while(1)
     {
-        int ready = poll(&pollfdDescr[0], pollfdDescr.size(), -1);
+        int ready = poll(&pollfdDescr[0], pollfdDescr.size(), 100);
+        if(!isGameStarted) return nullptr;
         if(ready == -1){
-            error(0, errno, "poll failed");
+            error(0, errno, "Poll failed\n");
             closeServer(0);
         }
         for(unsigned long int i=0; i<allClients.size() && ready>0; i++)
         {
+            if(!isGameStarted) return nullptr;
             if(pollfdDescr[i].revents & (POLLERR|POLLHUP|POLLRDHUP)) {
-                error(0, errno, "poll failed");
+                error(0, errno, "Poll failed\n");
                 closeServer(0);
             }
             if(pollfdDescr[i].revents & POLLIN)
             {
                 char buffer[255] = "";
                 ssize_t received = read(pollfdDescr[i].fd, buffer, 255);
-                if(received == -1) error(1, errno, "Blad read'a");
+                if(received == -1) error(1, errno, "Blad read'a\n");
                 else if(received == 0) disconnectClient(pollfdDescr[i].fd);
                 else
                 {
@@ -733,30 +778,39 @@ void inTheGameWindow()
 
     pthread_t threadTimer;
     int threadTimerId = pthread_create(&threadTimer, NULL, timer, NULL);
-    if(threadTimerId) error(1, errno, "Blad watku");
+    if(threadTimerId) error(1, errno, "Blad watku\n");
     
     pthread_t threadListen;
     int threadListenId = pthread_create(&threadListen, NULL, listenClientsInGame, NULL);
-    if(threadListenId) error(1, errno, "Blad watku");
+    if(threadListenId) error(1, errno, "Blad watku\n");
 
     while(1)
     {
+        if(allClients.size() < 2)
+        {
+            endGameTooLittlePlayers();
+            endTimer = true;
+            return;
+        } 
         if(isTimeOver || allSets.at(currentSet).alreadyGuessed == allSets.at(currentSet).correctWords.size())
         {
+            if(!isTimeOver) endTimer = true;
+            isTimeOver = true;
             currentRound++;
             if(roundNumber < currentRound) break;
+            isTimeOver = false;
             currentTime = roundTime;
             newRound();
-            isTimeOver = false;
-            pthread_t threadTimer;
             int threadTimerId = pthread_create(&threadTimer, NULL, timer, NULL);
-            if(threadTimerId) error(1, errno, "Blad watku");
+            if(threadTimerId) error(1, errno, "Blad watku\n");
         }
     }
+    sendToAllClientsThatGameIsOver();   
 }
 
 void resetServer()
 {
+    isGameStarted = false;
     pollfdDescr.clear();
     allSets.clear();
     insertAllSets();
@@ -769,7 +823,6 @@ void resetServer()
     currentTime = 0;
     roundTime = 100;
     roundNumber = 5;
-    isGameStarted = false;
     isTimeOver = false;
 }
 
@@ -778,7 +831,7 @@ int main(int argc, char ** argv)
     printf("Start serwera\n");
 
     socketServer = socket(AF_INET, SOCK_STREAM, 0);
-	if(socketServer == -1) error(1, errno, "Blad socket Server");
+	if(socketServer == -1) error(1, errno, "Blad socket Server\n");
 
     setReuseAddr(socketServer);
     signal(SIGPIPE, SIG_IGN);
@@ -791,17 +844,17 @@ int main(int argc, char ** argv)
 	};
 
     int serverBind = bind(socketServer, (sockaddr*) &serverAddr, sizeof(serverAddr));
-	if(serverBind) error(1, errno, "Blad server Bind");
+	if(serverBind) error(1, errno, "Blad server Bind\n");
 
     serverBind = listen(socketServer, 4);
-    if(serverBind) error(1, errno, "Blad listen");
+    if(serverBind) error(1, errno, "Blad listen\n");
 
     insertAllSets();
     srand(time(0));
 
     pthread_t accepting;
     int threadAccepting = pthread_create(&accepting, NULL, acceptingClients, NULL);
-    if(threadAccepting) error(1, errno, "Blad watku");
+    if(threadAccepting) error(1, errno, "Blad watku\n");
 
     while(1)
     {

@@ -9,8 +9,6 @@ gamewindow::gamewindow(QWidget *parent) :
     setUpGUI();
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(decreaseTime()));
-    //addLettersToUse("TEdST");
-    //addBuildedWord("TEasdasdasdasdST");
 }
 
 gamewindow::~gamewindow()

@@ -13,6 +13,7 @@ QT += widgets
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    endgameranking.cpp \
     gamewindow.cpp \
     login.cpp \
     main.cpp \
@@ -20,12 +21,14 @@ SOURCES += \
     waitingroom.cpp
 
 HEADERS += \
+    endgameranking.h \
     gamewindow.h \
     login.h \
     mainwindow.h \
     waitingroom.h
 
 FORMS += \
+    endgameranking.ui \
     gamewindow.ui \
     login.ui \
     mainwindow.ui \
