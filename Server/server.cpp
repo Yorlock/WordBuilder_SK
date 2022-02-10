@@ -18,7 +18,6 @@
 
 using namespace std;
 
-#define SERVER_PORT 1112
 #define NUMBER_OF_SETS 15
 
 struct client_struct
@@ -50,6 +49,8 @@ int roundTime = 100;
 int roundNumber = 5;
 bool isGameStarted = false;
 bool isTimeOver = false;
+int SERVER_PORT;
+
 
 bool endTimer = false;
 
@@ -775,6 +776,10 @@ void resetServer()
 
 int main(int argc, char ** argv)
 {
+    if(argc!=2) {
+        fprintf(stderr, "Nie podano portu\n");
+        return 1;
+    }
     printf("Start serwera\n");
 
     socketServer = socket(AF_INET, SOCK_STREAM, 0);
@@ -786,7 +791,7 @@ int main(int argc, char ** argv)
 
     sockaddr_in serverAddr{
 		.sin_family=AF_INET, 
-		.sin_port=htons(SERVER_PORT),
+		.sin_port=htons(atoi(argv[1])),
 		.sin_addr={INADDR_ANY}
 	};
 

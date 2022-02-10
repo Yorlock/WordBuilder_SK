@@ -242,7 +242,7 @@ void MainWindow::newGameMaster()
     ui->waitingroomWidget->waitingroom::setUpGameMaster(true);
 }
 
-void MainWindow::tryConnectToServer(QString nick)
+void MainWindow::tryConnectToServer(QString nick, QString ip, int port)
 {
     playerNick = nick;
     if(socket) delete socket;
@@ -264,7 +264,7 @@ void MainWindow::tryConnectToServer(QString nick)
     connect(socket, &QTcpSocket::disconnected, this, &MainWindow::socketDisconnected);
     connect(socket, &QTcpSocket::readyRead, this, &MainWindow::socketReadable);
     connTimeoutTimer->start(3000);
-    socket->connectToHost("127.0.0.1", 1112);
+    socket->connectToHost(ip, port);
 
 }
 

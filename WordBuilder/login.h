@@ -23,7 +23,7 @@ private slots:
     void on_joinLobbyPushButton_clicked();
 
 signals:
-    void connectToServer(QString nick);
+    void connectToServer(QString nick, QString ip, int port);
 
 private:
     Ui::login *ui;

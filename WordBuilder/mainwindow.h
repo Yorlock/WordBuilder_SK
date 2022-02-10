@@ -32,7 +32,7 @@ private:
     void socketDisconnected();
     void socketError(QTcpSocket::SocketError);
     void socketReadable();
-    void tryConnectToServer(QString nick);
+    void tryConnectToServer(QString nick, QString ip, int port);
 
     void loginInfo(QString message);
     void nickInfo(QString message);

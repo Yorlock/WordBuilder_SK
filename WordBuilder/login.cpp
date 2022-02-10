@@ -24,15 +24,19 @@ void login::on_joinLobbyPushButton_clicked()
 {
     ui->joinLobbyPushButton->setEnabled(false);
     ui->nickLineEdit->setEnabled(false);
+    ui->portLineEdit->setEnabled(false);
+    ui->ipLineEdit->setEnabled(false);
 
     QString nick = ui->nickLineEdit->text().trimmed();
-    if(nick.compare("") == 1)
+    QString ip = ui->ipLineEdit->text().trimmed();
+    QString port = ui->portLineEdit->text().trimmed();
+    if(nick.compare("") == 1 && ip.compare("") == 1 && port.compare("") == 1)
     {
-        emit connectToServer(nick);
+        emit connectToServer(nick, ip, port.toInt());
     }
     else
     {
-        showMessage("Nick jest pusty!");
+        showMessage("Wypelnij wszystkie pola!");
     }
 }
 
@@ -40,6 +44,8 @@ void login::showMessage(QString message)
 {
     ui->joinLobbyPushButton->setEnabled(true);
     ui->nickLineEdit->setEnabled(true);
+    ui->portLineEdit->setEnabled(true);
+    ui->ipLineEdit->setEnabled(true);
     ui->labelWrongNick->setText(message);
     ui->labelWrongNick->show();
     ui->nickLineEdit->setText("");
