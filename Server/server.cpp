@@ -743,6 +743,7 @@ void inTheGameWindow()
         if(isTimeOver || allSets.at(currentSet).alreadyGuessed == allSets.at(currentSet).correctWords.size())
         {
             if(!isTimeOver) endTimer = true;
+            sleep(1);
             isTimeOver = true;
             currentRound++;
             if(roundNumber < currentRound) break;
